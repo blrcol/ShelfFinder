@@ -52,7 +52,7 @@ Not yet verified against real systems: camera, compass, QR scanning, voice, OCR,
 ## Next steps
 
 1. ~~Deploy the proxy~~ Done. When `server/alma-proxy.gs` changes, paste it into the Apps Script and use Deploy → Manage deployments → edit → New version (keeps the same URL).
-2. ~~Put the site on GitHub Pages~~ Live at https://blrcol.github.io/ShelfFinder/ (repo github.com/blrcol/ShelfFinder, Pages from `main` / root). To update: upload the rebuilt `index.html` (Add file → Upload files). Still to do: test it on an iPhone and an Android in the library.
+2. ~~Put the site on GitHub Pages~~ Live at https://blrcol.github.io/ShelfFinder/ (repo github.com/blrcol/ShelfFinder, Pages from `main` / root). To update: this folder (`~/Documents/ShelfFinder/ShelfFinder`) is a git clone of the repo and the Mac is signed in with the GitHub CLI (`gh`, account blrcol), so rebuild, commit and `git push`; Pages republishes in about a minute. Still to do: test it on an iPhone and an Android in the library.
 3. Use Librarian → Load locations to check Colgate's real location codes, then adjust `catalogRules`.
 4. Calibrate the map with the in-app map editor (metres per unit and north offset), and record the call numbers on the row-end signs.
 5. ~~Restyle the other tabs to match Find~~ (done). Make the app an installable PWA (manifest + service worker). Do an accessibility pass.
