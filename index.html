@@ -108,6 +108,9 @@ label.f{display:block;font-size:13px;color:var(--ink);margin:12px 0 4px}
 .field select,.field input{width:100%;min-width:0}
 @media(max-width:480px){.field{grid-template-columns:minmax(0,1fr);gap:4px}}
 .check{display:inline-flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.floorpick{display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px 16px;margin:0;padding:0;border:0;min-width:0}
+.floorpick legend{float:left;padding:0;margin:0 2px 0 0;font-size:14px;font-weight:600;color:var(--head)}
+.floorpick input{margin:0}
 .btn,.hbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:28px;padding:4px 14px;border-radius:3px;border:1px solid #707070;font-family:var(--ui);font-size:14px;font-weight:400;line-height:1.2;color:#000;cursor:pointer;white-space:nowrap;text-decoration:none;
   background:linear-gradient(180deg,#f2f2f2 0%,#ebebeb 50%,#dddddd 51%,#cfcfcf 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.75)}
 .btn:hover,.hbtn:hover{border-color:#3c7fb1;color:#000;background:linear-gradient(180deg,#eaf6fd 0%,#d9f0fc 50%,#bee6fd 51%,#a7d9f5 100%)}
@@ -565,7 +568,7 @@ h2[tabindex="-1"]:focus,main:focus{outline:none}
             <option value="start">Back where I started</option>
             <option value="none">Wherever the last book is</option>
           </select></div>
-        <div class="row" style="margin-top:14px"><label class="check"><input type="checkbox" id="cartAvoid"> Avoid stairs</label><span class="grow"></span>
+        <div class="row" style="margin-top:14px"><fieldset class="floorpick"><legend>Between floors</legend><label class="check"><input type="radio" name="floorsByCart" value="stairs" checked> Stairs</label><label class="check"><input type="radio" name="floorsByCart" value="elevator"> Elevator</label></fieldset><span class="grow"></span>
           <button class="btn" id="cartPlan">Plan quickest route →</button></div>
         <div id="cartPlanOut"></div>
       </div>
@@ -588,7 +591,7 @@ h2[tabindex="-1"]:focus,main:focus{outline:none}
       <button class="btn sec" id="scanStart"><svg class="i" aria-hidden="true"><use href="#i-scan"/></svg>Scan marker</button>
     </div>
     <div class="row" style="margin-top:12px">
-      <label class="check"><input type="checkbox" id="avoidStairs"> Avoid stairs (elevators only)</label>
+      <fieldset class="floorpick"><legend>Between floors</legend><label class="check"><input type="radio" name="floorsByRoute" value="stairs" checked> Stairs</label><label class="check"><input type="radio" name="floorsByRoute" value="elevator"> Elevator</label></fieldset>
       <span class="grow"></span>
       <button class="btn" id="goAR">Start AR guide →</button>
     </div>
@@ -1187,18 +1190,22 @@ window.SF_DATA = {
   // Single-source shortest paths (whole graph)
   function dijkstra(G, from, opts) {
     opts = opts || {};
-    const dist = {}, prev = {}, done = new Set();
-    for (const k in G) dist[k] = Infinity;
-    dist[from] = 0;
+    // avoidStairs: never use stairs (step-free). avoidElevators: use stairs whenever a stair route
+    // exists, and an elevator only when nothing else reaches (e.g. Level 5 from Level 1).
+    // `key` orders the search (with the elevator penalty); `dist` is the real effort of that path.
+    const ELEV_PENALTY = 1000;
+    const dist = {}, key = {}, prev = {}, done = new Set();
+    for (const k in G) dist[k] = key[k] = Infinity;
+    dist[from] = key[from] = 0;
     while (true) {
       let u = null, best = Infinity;
-      for (const k in dist) if (!done.has(k) && dist[k] < best) { best = dist[k]; u = k; }
+      for (const k in key) if (!done.has(k) && key[k] < best) { best = key[k]; u = k; }
       if (u === null) break;
       done.add(u);
       for (const e of G[u].adj) {
         if (opts.avoidStairs && e.kind === 'stairs') continue;
-        const nd = dist[u] + e.w;
-        if (nd < dist[e.to]) { dist[e.to] = nd; prev[e.to] = u; }
+        const nk = key[u] + e.w + (opts.avoidElevators && e.kind === 'elevator' ? ELEV_PENALTY : 0);
+        if (nk < key[e.to]) { key[e.to] = nk; dist[e.to] = dist[u] + e.w; prev[e.to] = u; }
       }
     }
     return { dist, prev };
@@ -1511,13 +1518,16 @@ const DAY = 864e5;
 const S = {
   tab: 'find', books: clone(D.books), log: [], sel: null, mode: 'single',
   cart: [], tripEnd: 'circ', trip: null, stops: [],
-  start: D.entrances[0], avoidStairs: false, mapFloor: null,
+  start: D.entrances[0], floorsBy: 'stairs', mapFloor: null,
   route: null, steps: [], arStep: 0,
   settings: { mpp: 0.1, north: 0, catalogUrl: D.catalogSearchUrl || '', catalogRecordUrl: D.catalogRecordUrl || '', fbUrl: '', liveUrl: D.liveCatalogUrl || '' },
   heading: null, cam: false, stream: null, voice: false, spoken: null,
   shelfBookId: null, shelfFace: null, facingRange: null,
   searches: {}, heatFloor: 'L2'
 };
+// Between floors: stairs by default (elevators only where no stair goes), or elevators only.
+const routeOpts = () => (S.floorsBy === 'elevator' ? { avoidStairs: true } : { avoidElevators: true });
+function syncFloorPick() { document.querySelectorAll('.floorpick input').forEach((r) => { r.checked = r.value === S.floorsBy; }); }
 // demo: give each book a "last confirmed" time and empty report list
 S.books.forEach((b) => { b.demo = true; b.reports = b.reports || []; if (!b.seen) b.seen = new Date(Date.now() - (b.loc ? (b.id % 3) + 1 : ((b.id * 7) % 45) + 2) * DAY).toISOString(); });
 let G = C.buildGraph(D, S.settings.mpp);
@@ -1917,7 +1927,7 @@ function selectPlace(id) { S.mode = 'single'; S.sel = { kind: 'place', node: id 
 $('placeChips').addEventListener('click', (e) => {
   const c = e.target.closest('[data-pcat]'); if (!c) return;
   const k = c.dataset.pcat, t = D.placeTypes[k];
-  if (t.nearest) { const r = C.nearest(G, S.start, C.placesOf(G, k), { avoidStairs: S.avoidStairs }); if (r) { toast(`Nearest: ${r.node.label}`); selectPlace(r.node.id); } return; }
+  if (t.nearest) { const r = C.nearest(G, S.start, C.placesOf(G, k), routeOpts()); if (r) { toast(`Nearest: ${r.node.label}`); selectPlace(r.node.id); } return; }
   placeCat = placeCat === k ? null : k; renderPlaces();
 });
 $('placeList').addEventListener('click', (e) => { if (e.target.closest('[data-pclose]')) { placeCat = null; renderPlaces(); return; } const it = e.target.closest('[data-place]'); if (it) selectPlace(it.dataset.place); });
@@ -1950,7 +1960,7 @@ function renderCart() {
   $('cartList').innerHTML = n ? S.cart.map(bookById).filter(Boolean).map((b) => cartCard(b, bad.get(b.id))).join('')
     : `<div class="empty">Your cart is empty.<br>Search on Find and tap <b>Add to cart</b> on any book.<div style="margin-top:12px"><button class="btn outline" data-goto="find">Find books</button></div></div>`;
   $('cartStart').innerHTML = startOptions();
-  $('cartEnd').value = S.tripEnd; $('cartAvoid').checked = S.avoidStairs;
+  $('cartEnd').value = S.tripEnd; syncFloorPick();
   $('cartPlan').disabled = !n;
   // plan summary
   let out = '';
@@ -1969,7 +1979,7 @@ $('cartList').addEventListener('click', (e) => { const g = e.target.closest('[da
 $('cartClear').addEventListener('click', () => { S.cart = []; if (S.mode === 'trip') { S.mode = 'single'; S.trip = null; computeRoute(); } else renderAll(); });
 $('cartStart').addEventListener('change', (e) => { S.start = e.target.value; if (S.mode === 'trip') computeRoute(); });
 $('cartEnd').addEventListener('change', (e) => { S.tripEnd = e.target.value; if (S.mode === 'trip') computeRoute(); });
-$('cartAvoid').addEventListener('change', (e) => { S.avoidStairs = e.target.checked; if (S.mode === 'trip') computeRoute(); });
+document.querySelectorAll('.floorpick').forEach((fp) => fp.addEventListener('change', (e) => { S.floorsBy = e.target.value; syncFloorPick(); if (!fp.closest('#tab-cart') || S.mode === 'trip') computeRoute(); }));
 $('cartPlan').addEventListener('click', async () => {
   const live = S.cart.map(bookById).filter((b) => b && b.mms);
   if (live.length && S.settings.liveUrl) { $('cartPlan').disabled = true; $('cartPlan').textContent = 'Checking live status…'; await Promise.all(live.map(refreshCopies)); $('cartPlan').disabled = false; $('cartPlan').textContent = 'Plan quickest route →'; }
@@ -2026,7 +2036,7 @@ function computeRoute(keepStep) {
 function computeSingle() {
   const d = destination();
   if (!d || !d.node) return;
-  const r = C.route(G, S.start, d.node, { avoidStairs: S.avoidStairs });
+  const r = C.route(G, S.start, d.node, routeOpts());
   if (!r) return;
   S.route = r;
   S.steps = C.buildSteps(G, D, r.path, S.settings.mpp, d.label);
@@ -2039,7 +2049,7 @@ function computeTrip() {
   const nodes = Object.keys(groups);
   if (!nodes.length) return;
   const end = S.tripEnd === 'circ' ? 'L3:circ' : S.tripEnd === 'start' ? S.start : null;
-  const t = C.planTrip(G, S.start, nodes, end, { avoidStairs: S.avoidStairs });
+  const t = C.planTrip(G, S.start, nodes, end, routeOpts());
   if (!t) { toast('No route found'); return; }
   const full = [];
   t.legs.forEach((leg) => full.push(...(full.length ? leg.slice(1) : leg)));
@@ -2101,7 +2111,7 @@ function renderNav() {
   const bs = $('backSingle'); if (bs) bs.onclick = () => { S.mode = 'single'; computeRoute(); };
   $('goAR').disabled = !S.route;
   $('startSel').innerHTML = startOptions();
-  $('avoidStairs').checked = S.avoidStairs;
+  syncFloorPick();
   const floors = S.route ? [...new Set(S.route.path.map((p) => G[p].floor))].filter((f) => S.route.path.filter((p) => G[p].floor === f).length > 1 || G[S.route.path[S.route.path.length - 1]].floor === f) : [G[S.start].floor];
   if (!floors.includes(S.mapFloor)) S.mapFloor = floors[0];
   $('floorTabs').innerHTML = floors.map((f) => `<button class="ftab ${f === S.mapFloor ? 'on' : ''}" data-f="${f}">${FLOOR(f).name}</button>`).join('');
@@ -2121,7 +2131,6 @@ $('destCard').addEventListener('click', (e) => {
   const n = e.target.closest('[data-nothere]'); if (n) reportNotHere(+n.dataset.nothere);
 });
 $('startSel').addEventListener('change', (e) => { S.start = e.target.value; computeRoute(); });
-$('avoidStairs').addEventListener('change', (e) => { S.avoidStairs = e.target.checked; computeRoute(); });
 $('floorTabs').addEventListener('click', (e) => { if (e.target.dataset.f) { S.mapFloor = e.target.dataset.f; renderNav(); } });
 $('steps').addEventListener('click', (e) => { const li = e.target.closest('li[data-i]'); if (!li) return; S.arStep = +li.dataset.i; S.mapFloor = S.steps[S.arStep].floor; renderNav(); });
 $('goAR').addEventListener('click', () => setTab('ar'));

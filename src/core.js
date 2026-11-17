@@ -115,18 +115,22 @@
   // Single-source shortest paths (whole graph)
   function dijkstra(G, from, opts) {
     opts = opts || {};
-    const dist = {}, prev = {}, done = new Set();
-    for (const k in G) dist[k] = Infinity;
-    dist[from] = 0;
+    // avoidStairs: never use stairs (step-free). avoidElevators: use stairs whenever a stair route
+    // exists, and an elevator only when nothing else reaches (e.g. Level 5 from Level 1).
+    // `key` orders the search (with the elevator penalty); `dist` is the real effort of that path.
+    const ELEV_PENALTY = 1000;
+    const dist = {}, key = {}, prev = {}, done = new Set();
+    for (const k in G) dist[k] = key[k] = Infinity;
+    dist[from] = key[from] = 0;
     while (true) {
       let u = null, best = Infinity;
-      for (const k in dist) if (!done.has(k) && dist[k] < best) { best = dist[k]; u = k; }
+      for (const k in key) if (!done.has(k) && key[k] < best) { best = key[k]; u = k; }
       if (u === null) break;
       done.add(u);
       for (const e of G[u].adj) {
         if (opts.avoidStairs && e.kind === 'stairs') continue;
-        const nd = dist[u] + e.w;
-        if (nd < dist[e.to]) { dist[e.to] = nd; prev[e.to] = u; }
+        const nk = key[u] + e.w + (opts.avoidElevators && e.kind === 'elevator' ? ELEV_PENALTY : 0);
+        if (nk < key[e.to]) { key[e.to] = nk; dist[e.to] = dist[u] + e.w; prev[e.to] = u; }
       }
     }
     return { dist, prev };

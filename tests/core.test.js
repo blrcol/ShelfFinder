@@ -22,6 +22,10 @@ const G = C.buildGraph(D, 0.1);
 for (const k of Object.keys(G)) for (const e of D.entrances) assert.ok(C.route(G, e, k), `unreachable ${k} from ${e}`);
 const r = C.route(G, 'L5:ent', 'L2:b_ABP', { avoidStairs: true });
 assert.ok(r.path.every((p, i) => i === 0 || G[p].floor === G[r.path[i - 1]].floor || G[p].conn.kind === 'elevator'));
+// Stairs (the default): no elevator rides anywhere in the building, and cost is the real effort.
+const viaElev = (rt) => rt.path.some((p, i) => i > 0 && G[p].floor !== G[rt.path[i - 1]].floor && G[p].conn.kind === 'elevator');
+for (const k of Object.keys(G)) { const rs = C.route(G, 'L5:ent', k, { avoidElevators: true }); assert.ok(rs && !viaElev(rs), `elevator used to reach ${k}`); assert.ok(rs.cost < 1000, `penalty leaked into cost for ${k}`); }
+{ const a = C.route(G, 'L5:ent', 'L1:gov', {}), s = C.route(G, 'L5:ent', 'L1:gov', { avoidElevators: true }); assert.ok(s.cost >= a.cost); }
 const mis = C.findMisshelved(D.books.filter((b) => b.loc && b.loc.face === 'W'));
 assert.deepStrictEqual([...mis], [6]);
 console.log('All tests passed');
