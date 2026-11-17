@@ -28,13 +28,15 @@
 *{box-sizing:border-box}
 html,body{margin:0}
 body{font-family:var(--ui);font-size:15px;line-height:1.45;color:var(--ink);overflow-x:clip;-webkit-tap-highlight-color:transparent;min-height:100vh;
-  background-color:#1a0306;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 900' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='s' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%23fff' stop-opacity='0'/%3E%3Cstop offset='.5' stop-color='%23ffd0a0' stop-opacity='.8'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg fill='none' stroke='url(%23s)'%3E%3Cpath d='M-60 520C280 300 640 600 980 360S1320 140 1520 200' stroke-width='36' opacity='.3'/%3E%3Cpath d='M-60 560C300 350 660 640 1000 400S1330 190 1520 250' stroke-width='3'/%3E%3Cpath d='M-60 600C320 400 680 690 1020 450S1340 240 1520 300' stroke-width='10' opacity='.45'/%3E%3C/g%3E%3C/svg%3E"),radial-gradient(ellipse at 28% 12%,#d4505f 0%,#6b0f1a 36%,#1a0306 78%);
-  background-size:100% 100vh,100% 100%;background-repeat:no-repeat;background-attachment:fixed}
+  background-color:#3a0710}
 /* The big background C: a plain Roboto Slab letter (not Colgate's official logo, which needs Colgate
    Communications' approval). A real element so it can use the web font; aria-hidden, behind everything. */
 body{position:relative}
-.bgc{position:fixed;inset:0;overflow:hidden;z-index:-1;pointer-events:none;user-select:none}
+/* Wallpaper lives on this fixed, screen-sized layer (not on body with background-attachment:fixed,
+   which iPhones ignore and stretch over the whole page, making phones look darker). */
+.bgc{position:fixed;inset:0;overflow:hidden;z-index:-1;pointer-events:none;user-select:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 900' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='s' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%23fff' stop-opacity='0'/%3E%3Cstop offset='.5' stop-color='%23ffd0a0' stop-opacity='.8'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg fill='none' stroke='url(%23s)'%3E%3Cpath d='M-60 520C280 300 640 600 980 360S1320 140 1520 200' stroke-width='36' opacity='.3'/%3E%3Cpath d='M-60 560C300 350 660 640 1000 400S1330 190 1520 250' stroke-width='3'/%3E%3Cpath d='M-60 600C320 400 680 690 1020 450S1340 240 1520 300' stroke-width='10' opacity='.45'/%3E%3C/g%3E%3C/svg%3E"),radial-gradient(ellipse at 28% 12%,#d4505f 0%,#6b0f1a 36%,#1a0306 78%);
+  background-size:100% 100%,100% 100%;background-repeat:no-repeat}
 .bigc{position:absolute;top:50%;left:50%;transform:translate(calc(-50% + .0054em),calc(-50% + .1764em));
   font-family:"Roboto Slab",Rockwell,"Rockwell Extra Bold","American Typewriter",Georgia,serif;font-weight:800;font-size:95vh;line-height:1;
   background:linear-gradient(135deg,rgba(255,255,255,.32) 0%,rgba(255,217,221,.15) 50%,rgba(255,255,255,.06) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
