@@ -44,6 +44,7 @@ python3 -m http.server 8000      # local preview at http://localhost:8000
 - In `library-data.js`, `catalogRules[].match` is a string regex. Escape backslashes (`'\\bref\\b'`).
 - **Sample books** (`books` in library-data.js) are flagged `demo` and show a "Sample book" pill. While the live catalog is connected they are hidden from student search and reading lists and never merged with live records; `?demo=1` shows them for demos.
 - **Accessibility:** icons get `aria-hidden` (`ic()` does it); clickable non-buttons need `role="button" tabindex="0"` or `data-kbd` (Enter/Space handled globally); dialogs are `.modal` with `role=dialog` + `aria-labelledby` (focus in/out and Escape are automatic); every input needs a `<label for>` or `aria-label`; keep text contrast ≥ 4.5:1.
+- **Staff link:** the Librarian tab (and the sync chip) only appear with `?staff=1` (https://blrcol.github.io/ShelfFinder/?staff=1). This hides it from students; it is not security. Librarian views (KPIs, attention list, inventory) ignore sample books unless `?demo=1`.
 - **Catalog links:** `catalogRecordUrl` (Primo fulldisplay by MMS ID) for live records, `catalogSearchUrl` otherwise.
 
 ## Status

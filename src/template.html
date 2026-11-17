@@ -825,6 +825,9 @@ let G = C.buildGraph(D, S.settings.mpp);
 // connected, students only see real Colgate records; ?demo=1 brings the samples back for a demo.
 const SHOW_DEMO = new URLSearchParams(location.search).get('demo') === '1';
 const useBook = (b) => !b.demo || SHOW_DEMO || !S.settings.liveUrl;
+// Students don't see the Librarian tab; staff open the site with ?staff=1. (A convenience, not security:
+// librarian changes are only saved through the shared database.)
+const STAFF = new URLSearchParams(location.search).get('staff') === '1';
 $('libName').textContent = D.library;
 
 const FLOOR = (f) => D.floors[f];
@@ -968,7 +971,12 @@ let liveTimer = null, liveSeq = 0;
 async function liveGet(params) {
   const u = (S.settings.liveUrl || '').trim();
   if (!u) throw new Error('Live catalog is not connected (Librarian → Live Colgate catalog).');
-  const r = await fetch(u + (u.includes('?') ? '&' : '?') + new URLSearchParams(params).toString());
+  const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = ctl ? setTimeout(() => ctl.abort(), 15000) : null;
+  let r;
+  try { r = await fetch(u + (u.includes('?') ? '&' : '?') + new URLSearchParams(params).toString(), ctl ? { signal: ctl.signal } : undefined); }
+  catch (e) { throw new Error(e && e.name === 'AbortError' ? 'It didn’t answer in time.' : 'Check your internet connection.'); }
+  finally { if (timer) clearTimeout(timer); }
   let j; try { j = await r.json(); } catch (e) { throw new Error('The proxy did not return JSON — check the web app URL and that it is deployed for “Anyone”.'); }
   if (!j.ok) throw new Error(j.error || 'Catalog error');
   return j.data;
@@ -1004,20 +1012,27 @@ async function refreshCopies(b) {
       b.checked = new Date().toISOString();
     }
     return true;
-  } catch (e) { toast('Live status unavailable: ' + e.message); return false; }
+  } catch (e) { toast('Couldn’t check live status right now. Showing the last known location.'); return false; }
 }
 function copiesLine(b) {
   if (!b.copies || !b.copies.length) return '';
-  const n = b.copies.length, on = b.copies.filter((c) => c.status === 'shelf').length;
+  const inLasr = (c) => { const p = C.catalogPlace(c, D); return p.kind === 'status' && p.status === 'lasr'; };
+  const n = b.copies.length, on = b.copies.filter((c) => c.status === 'shelf' && !inLasr(c)).length, lasr = b.copies.filter((c) => c.status === 'shelf' && inLasr(c)).length;
   const out = b.copies.filter((c) => c.status === 'out');
   const due = out.map((c) => c.dueDate).filter(Boolean).sort()[0];
-  return `${n} cop${n > 1 ? 'ies' : 'y'} · ${on} on the shelf${out.length ? ` · ${out.length} checked out${due ? ` (due ${new Date(due).toLocaleDateString([], { month: 'short', day: 'numeric' })})` : ''}` : ''}`;
+  const parts = [`${n} cop${n > 1 ? 'ies' : 'y'}`];
+  if (on || !lasr) parts.push(`${on} on the shelf`);
+  if (lasr) parts.push(`${lasr} in LASR`);
+  if (out.length) parts.push(`${out.length} checked out${due ? ` (due ${new Date(due).toLocaleDateString([], { month: 'short', day: 'numeric' })})` : ''}`);
+  return parts.join(' · ');
 }
 function scheduleLive(q) {
   clearTimeout(liveTimer);
   if (!S.settings.liveUrl || q.length < 3) { S.live = { q: '', loading: false, error: '', ids: [], total: 0 }; renderLive(); return; }
   if (q === S.live.q && !S.live.error) return;
-  S.live.loading = true; S.live.q = q; renderLive();
+  S.live.loading = true; S.live.slow = false; S.live.q = q; renderLive();
+  const slowSeq = liveSeq + 1;
+  setTimeout(() => { if (S.live.loading && liveSeq === slowSeq) { S.live.slow = true; renderLive(); } }, 6000);
   liveTimer = setTimeout(async () => {
     const seq = ++liveSeq;
     try {
@@ -1034,8 +1049,8 @@ function renderLive() {
   const L = S.live;
   if (!L.q) { el.innerHTML = ''; return; }
   const allLive = onShelfFirst(L.ids.map(bookById).filter(Boolean)), vis = allLive.filter(isShown), hid = allLive.length - vis.length;
-  let h = `<div class="reshead"><h3>Colgate catalog</h3><span class="muted small">${L.loading ? 'searching…' : L.error ? '' : `${L.total} result${L.total !== 1 ? 's' : ''}${L.total > vis.length ? `, showing ${vis.length}` : ''}`}${L.loading ? '' : hiddenNote(hid)}</span></div>`;
-  if (L.error) h += `<div class="card">Couldn’t reach the catalog: ${esc(L.error)}</div>`;
+  let h = `<div class="reshead"><h3>Colgate catalog</h3><span class="muted small">${L.loading ? (L.slow ? 'still searching, the catalog is slow right now…' : 'searching…') : L.error ? '' : `${L.total} result${L.total !== 1 ? 's' : ''}${L.total > vis.length ? `, showing ${vis.length}` : ''}`}${L.loading ? '' : hiddenNote(hid)}</span></div>`;
+  if (L.error) h += `<div class="card warn"><b>The Colgate catalog isn’t responding right now.</b> ${esc(L.error)} Places, call numbers and ShelfFinder’s own books still work. <button class="cta" type="button" data-retry>Try again</button></div>`;
   h += vis.map(bookCard).join('');
   if (!L.loading && hid && !vis.length) h += `<div class="empty">All ${hid} results here are hidden by your “Show” choice.</div>`;
   el.innerHTML = h;
@@ -1138,7 +1153,7 @@ $('results').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.tar
 $('liveResults').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.classList.contains('bcard')) selectBook(+e.target.dataset.id); });
 document.querySelector('.tries').addEventListener('click', (e) => { const t = e.target.closest('[data-try]'); if (!t) return; $('q').value = t.dataset.try; placeCat = null; renderFind(); });
 $('showMenu').addEventListener('change', () => setShow([...document.querySelectorAll('#showMenu input[type=checkbox]')].filter((c) => c.checked).map((c) => c.value)));
-$('findResults').addEventListener('click', (e) => { if (e.target.closest('[data-showall]')) { setShow(SHOW_KEYS); } else if (e.target.closest('#showShelfOnly')) { setShow(['shelf']); } });
+$('findResults').addEventListener('click', (e) => { if (e.target.closest('[data-retry]')) { scheduleLive($('q').value.trim()); return; } if (e.target.closest('[data-showall]')) { setShow(SHOW_KEYS); } else if (e.target.closest('#showShelfOnly')) { setShow(['shelf']); } });
 document.addEventListener('click', (e) => { const m = $('showMenu'); if (m.open && !m.contains(e.target)) m.open = false; });
 renderShowMenu();
 $('qGo').addEventListener('click', () => { placeCat = null; renderFind(); $('q').focus(); });
@@ -1739,16 +1754,17 @@ $('scanUse').addEventListener('click', () => handleScan($('scanPick').value));
 // ---------------- LIBRARIAN ----------------
 function allFlagged() {
   const flagged = new Set();
-  for (const r of D.ranges) for (const f of r.faces) C.findMisshelved(S.books.filter((b) => b.status === 'shelf' && b.loc && b.loc.range === r.id && b.loc.face === f)).forEach((id) => flagged.add(id));
+  for (const r of D.ranges) for (const f of r.faces) C.findMisshelved(S.books.filter((b) => useBook(b) && b.status === 'shelf' && b.loc && b.loc.range === r.id && b.loc.face === f)).forEach((id) => flagged.add(id));
   return flagged;
 }
 const isStale = (b) => b.status === 'shelf' && (Date.now() - new Date(b.seen || 0).getTime()) > 30 * DAY;
 function renderLib() {
   const flagged = allFlagged();
-  const reps = S.books.filter(openReports), stale = S.books.filter((b) => isStale(b) && !openReports(b) && !flagged.has(b.id));
-  const shelf = S.books.filter((b) => b.status === 'shelf'), fresh = shelf.filter((b) => (Date.now() - new Date(b.seen || 0).getTime()) <= 7 * DAY);
+  const LB = S.books.filter(useBook); // the books the library tracks (sample books only in ?demo=1)
+  const reps = LB.filter(openReports), stale = LB.filter((b) => isStale(b) && !openReports(b) && !flagged.has(b.id));
+  const shelf = LB.filter((b) => b.status === 'shelf'), fresh = shelf.filter((b) => (Date.now() - new Date(b.seen || 0).getTime()) <= 7 * DAY);
   $('repBadge').textContent = reps.length; $('repBadge').classList.toggle('hidden', !reps.length);
-  $('kpis').innerHTML = [[S.books.length, 'books tracked'], [shelf.length ? Math.round(fresh.length / shelf.length * 100) + '%' : '—', 'confirmed in last 7 days'], [reps.length, 'open “Not here” reports', 1], [flagged.size, 'possibly misshelved', 1], [stale.length, 'not confirmed in 30+ days', 1], [S.books.filter((b) => b.status === 'missing').length, 'marked missing', 1]]
+  $('kpis').innerHTML = [[LB.length, 'books tracked'], [shelf.length ? Math.round(fresh.length / shelf.length * 100) + '%' : '—', 'confirmed in last 7 days'], [reps.length, 'open “Not here” reports', 1], [flagged.size, 'possibly misshelved', 1], [stale.length, 'not confirmed in 30+ days', 1], [LB.filter((b) => b.status === 'missing').length, 'marked missing', 1]]
     .map(([v, l, warn]) => `<div class="kpi ${warn && v ? 'alert' : ''}"><b>${v}</b><span>${l}</span></div>`).join('');
   // attention list
   const att = [];
@@ -1767,7 +1783,7 @@ function renderLib() {
   $('topSearch').innerHTML = top.length ? top.map(([q, n]) => `<span class="pill gray" style="margin:2px">${esc(q)} · ${n}</span>`).join('') : '<span class="muted">No searches yet this session.</span>';
   // inventory
   const q = $('invQ').value.trim().toLowerCase();
-  const rows = S.books.filter((b) => !q || (b.title + b.author + b.call).toLowerCase().includes(q)).slice().sort((a, b) => C.compareCall(a.call, b.call)).map((b) => `<tr>
+  const rows = LB.filter((b) => !q || (b.title + b.author + b.call).toLowerCase().includes(q)).slice().sort((a, b) => C.compareCall(a.call, b.call)).map((b) => `<tr>
     <td><b>${esc(b.title)}</b><div class="muted small">${esc(b.author)}</div></td>
     <td><code>${esc(b.call)}</code></td>
     <td class="small">${esc(locLine(b))} ${flagged.has(b.id) ? '<span class="pill warn">Out of order?</span>' : ''}<div class="muted">✓ ${ago(b.seen)}</div></td>
@@ -1778,7 +1794,7 @@ function renderLib() {
       ${b.status !== 'out' ? `<button class="btn ${b.status === 'cart' ? '' : 'sec'} sm" data-act="shelve" data-id="${b.id}">${b.status === 'cart' ? 'Reshelve' : 'Set location'}</button>` : ''}
       <button class="btn sec sm" data-act="find" data-id="${b.id}">Find</button>
     </div></td></tr>`).join('');
-  $('inv').innerHTML = `<tr><th>Book</th><th>Call #</th><th>Location</th><th>Status</th><th></th></tr>${rows}`;
+  $('inv').innerHTML = `<tr><th>Book</th><th>Call #</th><th>Location</th><th>Status</th><th></th></tr>${rows || `<tr><td colspan="5" class="muted">${q ? 'No tracked books match that filter.' : 'No books tracked yet. Import the library’s catalog CSV below; books people look up also appear here.'}</td></tr>`}`;
   $('log').innerHTML = S.log.map((l) => `<div>${esc(l)}</div>`).join('');
   $('mpp').value = S.settings.mpp; $('north').value = S.settings.north;
   if (document.activeElement !== $('catUrl')) $('catUrl').value = S.settings.catalogUrl;
@@ -2045,6 +2061,7 @@ $('edReset').addEventListener('click', () => { const o = JSON.parse(ORIGINAL_MAP
 
 // ---------------- Tabs ----------------
 function setTab(t) {
+  if (t === 'lib' && !STAFF) t = 'find';
   S.tab = t;
   document.querySelectorAll('#nav button').forEach((b) => { b.classList.toggle('active', b.dataset.tab === t); if (b.dataset.tab === t) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   ['find', 'cart', 'nav', 'ar', 'shelf', 'lib'].forEach((x) => $('tab-' + x).classList.toggle('hidden', x !== t));
@@ -2082,6 +2099,7 @@ else if (qs.get('book') && bookById(+qs.get('book'))) selectBook(+qs.get('book')
 else if (qs.get('call')) { const L = C.lookup(qs.get('call'), D); if (L.ok) { S.sel = { kind: 'call', call: qs.get('call').toUpperCase(), block: L.block }; computeRoute(); setTab('nav'); } else renderAll(); }
 else renderAll();
 setSync('Local');
+if (!STAFF) { document.querySelector('#nav [data-tab="lib"]').classList.add('hidden'); $('syncChip').classList.add('hidden'); }
 // ---------------- Installable app (PWA) ----------------
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname))) navigator.serviceWorker.register('sw.js').catch(() => {});
 let installEvt = null;
