@@ -1518,7 +1518,7 @@ const DAY = 864e5;
 const S = {
   tab: 'find', books: clone(D.books), log: [], sel: null, mode: 'single',
   cart: [], tripEnd: 'circ', trip: null, stops: [],
-  start: D.entrances[0], floorsBy: 'stairs', mapFloor: null,
+  start: D.entrances[0], floorsBy: (() => { try { return localStorage.getItem('shelffinder.floors') === 'elevator' ? 'elevator' : 'stairs'; } catch (e) { return 'stairs'; } })(), mapFloor: null,
   route: null, steps: [], arStep: 0,
   settings: { mpp: 0.1, north: 0, catalogUrl: D.catalogSearchUrl || '', catalogRecordUrl: D.catalogRecordUrl || '', fbUrl: '', liveUrl: D.liveCatalogUrl || '' },
   heading: null, cam: false, stream: null, voice: false, spoken: null,
@@ -1526,6 +1526,7 @@ const S = {
   searches: {}, heatFloor: 'L2'
 };
 // Between floors: stairs by default (elevators only where no stair goes), or elevators only.
+// The choice is remembered on this device (localStorage 'shelffinder.floors', try/catch like the Show menu).
 const routeOpts = () => (S.floorsBy === 'elevator' ? { avoidStairs: true } : { avoidElevators: true });
 function syncFloorPick() { document.querySelectorAll('.floorpick input').forEach((r) => { r.checked = r.value === S.floorsBy; }); }
 // demo: give each book a "last confirmed" time and empty report list
@@ -1979,7 +1980,8 @@ $('cartList').addEventListener('click', (e) => { const g = e.target.closest('[da
 $('cartClear').addEventListener('click', () => { S.cart = []; if (S.mode === 'trip') { S.mode = 'single'; S.trip = null; computeRoute(); } else renderAll(); });
 $('cartStart').addEventListener('change', (e) => { S.start = e.target.value; if (S.mode === 'trip') computeRoute(); });
 $('cartEnd').addEventListener('change', (e) => { S.tripEnd = e.target.value; if (S.mode === 'trip') computeRoute(); });
-document.querySelectorAll('.floorpick').forEach((fp) => fp.addEventListener('change', (e) => { S.floorsBy = e.target.value; syncFloorPick(); if (!fp.closest('#tab-cart') || S.mode === 'trip') computeRoute(); }));
+document.querySelectorAll('.floorpick').forEach((fp) => fp.addEventListener('change', (e) => { S.floorsBy = e.target.value; try { localStorage.setItem('shelffinder.floors', S.floorsBy); } catch (err) {} syncFloorPick(); if (!fp.closest('#tab-cart') || S.mode === 'trip') computeRoute(); }));
+syncFloorPick();
 $('cartPlan').addEventListener('click', async () => {
   const live = S.cart.map(bookById).filter((b) => b && b.mms);
   if (live.length && S.settings.liveUrl) { $('cartPlan').disabled = true; $('cartPlan').textContent = 'Checking live status…'; await Promise.all(live.map(refreshCopies)); $('cartPlan').disabled = false; $('cartPlan').textContent = 'Plan quickest route →'; }
