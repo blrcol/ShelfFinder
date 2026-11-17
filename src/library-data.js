@@ -20,6 +20,9 @@ window.SF_DATA = {
   // anything else opens a catalog search.
   catalogRecordUrl: 'https://colgate.primo.exlibrisgroup.com/discovery/fulldisplay?docid=alma{mms}&vid=01COLGATE_INST:01COLGATE_INST&lang=en',
   catalogSearchUrl: 'https://colgate.primo.exlibrisgroup.com/discovery/search?query=any,contains,{q}&vid=01COLGATE_INST:01COLGATE_INST&lang=en',
+  // Interlibrary loan (Colgate's ILLiad). {q} = the search text, filled in as the book title.
+  // People sign in with their Colgate portal account; books arrive at the Access Services Desk, Level 3.
+  illRequestUrl: 'https://colgate.illiad.oclc.org/illiad/illiad.dll/OpenURL?genre=book&title={q}',
 
   floors: {
     L5: {

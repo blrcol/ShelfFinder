@@ -227,6 +227,8 @@ label.f{display:block;font-size:13px;color:var(--ink);margin:12px 0 4px}
 .showmenu .muted{font-size:12px}
 @media(max-width:820px){.filterbar{justify-content:flex-start}.showmenu fieldset{right:auto;left:0}}
 .hidnote{white-space:nowrap}.hidnote .cta{font-size:13px}
+.illnote{margin-top:10px;font-size:14px;color:var(--muted)}.illnote a{color:var(--link,#0b57a4);font-weight:600}
+.empty .illgo{margin-top:12px}
 /* ---- book rows (details-pane style) ---- */
 .bcard{display:flex;gap:0;background:#fff;border:1px solid transparent;border-bottom-color:#edf0f4;border-radius:3px;cursor:pointer}
 .bcard:hover{border-color:#b8d6fb;background:linear-gradient(180deg,#fafbfd,#ebf3fd)}
@@ -816,6 +818,9 @@ window.SF_DATA = {
   // anything else opens a catalog search.
   catalogRecordUrl: 'https://colgate.primo.exlibrisgroup.com/discovery/fulldisplay?docid=alma{mms}&vid=01COLGATE_INST:01COLGATE_INST&lang=en',
   catalogSearchUrl: 'https://colgate.primo.exlibrisgroup.com/discovery/search?query=any,contains,{q}&vid=01COLGATE_INST:01COLGATE_INST&lang=en',
+  // Interlibrary loan (Colgate's ILLiad). {q} = the search text, filled in as the book title.
+  // People sign in with their Colgate portal account; books arrive at the Access Services Desk, Level 3.
+  illRequestUrl: 'https://colgate.illiad.oclc.org/illiad/illiad.dll/OpenURL?genre=book&title={q}',
 
   floors: {
     L5: {
@@ -1743,6 +1748,9 @@ function renderLive() {
   if (L.error) h += `<div class="card warn"><b>The Colgate catalog isn’t responding right now.</b> ${esc(L.error)} Places, call numbers and ShelfFinder’s own books still work. <button class="cta" type="button" data-retry>Try again</button></div>`;
   h += vis.map(bookCard).join('');
   if (!L.loading && hid && !vis.length) h += `<div class="empty">All ${hid} results here are hidden by your “Show” choice.</div>`;
+  const ill = !L.loading && !L.error && !looksLikeCall(L.q) ? illUrl(L.q) : '';
+  if (ill && !L.total) h += `<div class="empty">Colgate’s catalog has nothing for “${esc(L.q)}”.<br>Check the spelling, or borrow it from another library for free. It usually takes 1–2 weeks, and you pick it up at the Access Services Desk on Level 3.<div class="illgo"><a class="btn" href="${esc(ill)}" target="_blank" rel="noopener">Request from another library ↗</a></div></div>`;
+  else if (ill) h += `<p class="illnote">Not finding it? <a href="${esc(ill)}" target="_blank" rel="noopener">Request it from another library ↗</a> (free, usually 1–2 weeks).</p>`;
   el.innerHTML = h;
   $('srStatus').textContent = L.loading ? 'Searching the Colgate catalog…' : L.error ? 'Couldn’t reach the Colgate catalog.' : `${L.total} result${L.total !== 1 ? 's' : ''} in the Colgate catalog.`;
 }
@@ -1758,6 +1766,9 @@ const SHOW_NAMES = { shelf: 'On the shelf', lasr: 'LASR storage', online: 'Onlin
 const showGroup = (b) => (['shelf', 'lasr', 'online', 'out'].includes(b.status) ? b.status : 'other');
 let SHOW = (() => { try { const v = JSON.parse(localStorage.getItem('shelffinder.show')); if (Array.isArray(v)) return new Set(v.filter((k) => SHOW_KEYS.includes(k))); } catch (e) {} return new Set(SHOW_KEYS); })();
 const isShown = (b) => SHOW.has(showGroup(b));
+// Interlibrary loan: send people to Colgate's ILLiad request form with their search as the title.
+const looksLikeCall = (q) => !!C.parseCall(q) && (/^[A-Z]{1,3}\s?\d/i.test(q) || /^REF\b/i.test(q));
+const illUrl = (q) => (D.illRequestUrl ? D.illRequestUrl.replace('{q}', encodeURIComponent(q)) : '');
 function hiddenNote(n) { return n ? ` <span class="hidnote">· ${n} hidden by “Show” <button class="cta" type="button" data-showall>Show all</button></span>` : ''; }
 function renderShowMenu() {
   document.querySelectorAll('#showMenu input[type=checkbox]').forEach((c) => { c.checked = SHOW.has(c.value); });
@@ -1812,7 +1823,7 @@ function renderFind() {
   const list = allLocal.filter(isShown);
   let card = '';
   const p = C.parseCall(q);
-  if (q && p && (/^[A-Z]{1,3}\s?\d/i.test(q) || /^REF\b/i.test(q))) {
+  if (q && p && looksLikeCall(q)) {
     const L = C.lookup(q, D);
     if (L.ok) card = `<div class="callout"><div class="grow"><div class="muted small" style="font-weight:700;letter-spacing:.5px;text-transform:uppercase">Call number</div><div class="big">${esc(q.toUpperCase())}</div>
       <div class="where">${PIN}<span><b>${FLOOR(L.block.floor).name}</b> · ${esc(blockName(L.block))}</span></div>` +
