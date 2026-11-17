@@ -1,0 +1,41 @@
+# Runs on every push to main (and on pull requests).
+# 1. Rebuilds index.html from src/ and fails if the committed copy is out of date.
+# 2. Runs the three test suites (core logic, catalog proxy, whole app with a fake catalog).
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: index.html matches src/ (run python3 build.py before committing)
+        run: |
+          python3 build.py
+          if ! git diff --quiet -- index.html; then
+            echo "::error file=index.html::index.html is out of date with src/. Run python3 build.py and commit the result."
+            git diff --stat -- index.html
+            exit 1
+          fi
+
+      - name: Core logic tests
+        run: node tests/core.test.js
+
+      - name: Catalog proxy tests
+        run: node tests/proxy.test.js
+
+      - name: App + live catalog tests
+        run: node tests/app-live.test.js
