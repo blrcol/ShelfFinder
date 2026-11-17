@@ -57,7 +57,9 @@ Not yet verified against real systems: camera, compass, QR scanning, voice, OCR,
 
 ## Next steps
 
-1. ~~Deploy the proxy~~ Done. When `server/alma-proxy.gs` changes, paste it into the Apps Script and use Deploy → Manage deployments → edit → New version (keeps the same URL).
+1. ~~Deploy the proxy~~ Done. When `server/alma-proxy.gs` changes, publish it from `server/` with clasp (Node and clasp live in `~/.local/node/bin`, signed in to the user's Google account; credentials stay in `~/.clasprc.json`, never in the repo):
+   `export PATH=~/.local/node/bin:$PATH && cd server && clasp push --force && clasp create-deployment -i AKfycbxSTzyb6mNUGsgtwYbaozWuZAjIxZssW_-qDjBeVV6n79pQB3YyHHkDMyeiLU-tyLHhsQ -d "<what changed>"`
+   That pushes only `alma-proxy.gs` and `appsscript.json` (see `.claspignore`) and publishes a new version at the same URL. Then check `?action=ping` shows `configuration` and `bibs` as `ok`. Proxy version 2 (Nov 17, 2026) fixed the ping XML check and the `suppressed` flag.
 2. ~~Put the site on GitHub Pages~~ Live at https://blrcol.github.io/ShelfFinder/ (repo github.com/blrcol/ShelfFinder, Pages from `main` / root). To update: this folder (`~/Documents/ShelfFinder/ShelfFinder`) is a git clone of the repo and the Mac is signed in with the GitHub CLI (`gh`, account blrcol), so rebuild, commit and `git push`; Pages republishes in about a minute. Still to do: test it on an iPhone and an Android in the library.
 3. Use Librarian → Load locations to check Colgate's real location codes, then adjust `catalogRules`.
 4. Calibrate the map with the in-app map editor (metres per unit and north offset), and record the call numbers on the row-end signs.
