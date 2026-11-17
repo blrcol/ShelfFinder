@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#821019">
+<title>ShelfFinder · Case-Geyer Library</title>
+<style>
+:root{--bg:#f4f4f5;--panel:#fff;--ink:#1f1f22;--muted:#5A646E;--accent:#E10028;--teal:#5A646E;--line:#D2D4D6;--wood:#8b5e3c;--wood2:#5e3a22;--gold:#ffd54a;--maroon:#821019;--maroon-d:#411217;--ok:#1f7a3d;--serif:Georgia,'Times New Roman',serif}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
+header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--maroon);color:#fff}
+header h1{font-size:21px;margin:0;font-family:var(--serif);font-weight:700;letter-spacing:.2px}
+header .sub{font-size:12px;opacity:.8}
+#syncChip{margin-left:auto;font-size:11px;background:#ffffff22;padding:4px 10px;border-radius:999px;white-space:nowrap}
+nav{display:flex;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto;position:sticky;top:0;z-index:20;box-shadow:0 1px 3px #0000000d}
+nav button{flex:1;min-width:70px;background:none;border:0;color:var(--muted);padding:12px 6px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button.active{color:var(--maroon);border-bottom-color:var(--maroon)}
+.badge{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--maroon);color:#fff;font-size:11px;font-weight:700;margin-left:3px}
+main{max-width:1100px;margin:0 auto;padding:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px}
+h2{font-family:var(--serif);font-size:20px;margin:0 0 10px;font-weight:700}
+h3{font-size:14px;margin:14px 0 8px}
+.muted{color:var(--muted);font-size:13px}
+.small{font-size:12px}
+input,select,textarea{font:inherit;font-size:14px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;max-width:100%;color:var(--ink)}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,.btn:focus-visible{outline:3px solid #F0AA00;outline-offset:2px}
+input[type=checkbox]{accent-color:var(--maroon);width:18px;height:18px;margin:0}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:#f1f2f3;border-radius:5px;padding:2px 6px;color:var(--ink)}
+input[type=search]{width:100%;font-size:16px;padding:12px}
+.btn{font:inherit;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:9px 14px;font-size:14px;cursor:pointer;white-space:nowrap;display:inline-block}
+.btn.sec{background:#eef0f1;color:var(--ink)}
+.btn:hover{filter:brightness(.94)}
+.btn.outline{background:#fff;color:var(--maroon);box-shadow:inset 0 0 0 1.5px var(--maroon)}
+.btn.teal{background:#fff;color:var(--maroon);box-shadow:inset 0 0 0 1.5px var(--maroon)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:600}
+.btn .i{width:16px;height:16px}
+.btn.ghost{background:none;color:var(--accent);padding:4px 6px}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grow{flex:1}
+.hidden{display:none!important}
+.pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:#e5f2e9;color:var(--ok);font-weight:700;white-space:nowrap}
+.pill.out{background:#f3e3e3;color:#9b3b3b}.pill.cart{background:#fbf1dc;color:#8a6312}.pill.lasr{background:#e9e6f6;color:#4c3f8f}.pill.warn{background:#fdeee6;color:var(--accent)}.pill.gray{background:#eee;color:#666}.pill.miss{background:#1f1f22;color:#fff}
+.list{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.item{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;display:flex;gap:12px;align-items:center;transition:border-color .15s,box-shadow .15s}
+.item:hover{border-color:#b9bcc0;box-shadow:0 4px 14px #0000000f}
+.item .t{font-weight:600}
+.item .a{font-size:12px;color:var(--muted)}
+.item .l{font-size:12px;margin-top:5px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.card{border:1px solid var(--line);border-left:4px solid var(--maroon);background:#fff;border-radius:12px;padding:12px 14px;margin-top:10px;font-size:14px;line-height:1.45}
+.card.teal{border-left-color:var(--teal)}
+.card.warn{border-left-color:#F0AA00}
+.card.ok{border-left-color:var(--ok)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:820px){.grid2{grid-template-columns:1fr}}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.kpi b{display:block;font-family:var(--serif);font-size:28px;line-height:1.1;color:var(--maroon)}
+.kpi.alert{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.kpi span{font-size:12px;color:var(--muted)}
+/* map */
+.mapwrap{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.mapwrap svg{display:block;width:100%;height:auto}
+.floor-tabs{display:flex;gap:6px;margin:10px 0 8px;flex-wrap:wrap}
+.ftab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 13px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.ftab:hover{border-color:var(--maroon);color:var(--maroon)}
+.ftab.on{background:var(--maroon);color:#fff;border-color:var(--maroon)}
+.ftab .i{width:15px;height:15px}
+@keyframes dash{to{stroke-dashoffset:-28}}
+.route{fill:none;stroke:var(--accent);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:14 8;animation:dash .9s linear infinite}
+.route.dim{stroke:#E1002855;animation:none}
+@keyframes pulse{0%{r:8;opacity:1}100%{r:26;opacity:0}}
+.pulse{animation:pulse 1.5s ease-out infinite}
+.steps{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.steps li{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:10px;background:#fff;border:1px solid var(--line);font-size:14px;line-height:1.4;cursor:pointer;transition:border-color .15s}
+.steps li:hover{border-color:#b9bcc0}
+.steps li.cur{border-color:var(--maroon);box-shadow:inset 0 0 0 1.5px var(--maroon);background:#fbf5f5}
+.steps .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--muted);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.steps .floor .n{background:var(--maroon-d)}
+.steps .stop .n,.steps .arrive .n{background:var(--accent)}
+.steps .stop{background:#fdf6e6;border-color:#f3dca6}
+/* AR */
+.stage{position:relative;width:100%;aspect-ratio:3/4;max-height:72vh;border-radius:14px;overflow:hidden;background:radial-gradient(circle at 50% 30%,#4d2a2f,#1a1012)}
+@media(min-width:821px){.stage{aspect-ratio:16/10}}
+.stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hud{position:absolute;left:10px;right:10px;display:flex;justify-content:space-between;gap:8px;z-index:5;pointer-events:none}
+.hud.top{top:10px}.hud.bottom{bottom:10px}
+.chip{background:#000b;color:#fff;font-size:12px;padding:6px 10px;border-radius:999px;backdrop-filter:blur(4px);pointer-events:auto}
+.guide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:8px;color:#fff;text-align:center;padding:60px 18px 76px;z-index:3}
+.guide .instr,.guide .dist{background:#0008;border-radius:10px;padding:4px 12px}
+.guide .instr{font-size:21px;font-weight:700;text-shadow:0 2px 8px #000}
+.guide .dist{font-size:14px;opacity:.95;text-shadow:0 1px 4px #000;max-width:560px}
+.guide .btn{pointer-events:auto}
+.arrow3d{width:42%;max-width:200px;transition:transform .35s ease;filter:drop-shadow(0 8px 14px #000a)}
+.inset{position:absolute;right:10px;top:48px;width:28%;max-width:160px;border-radius:10px;overflow:hidden;border:2px solid #fff9;z-index:4;background:#fff}
+.inset svg{display:block;width:100%;height:auto}
+.floorpath{position:absolute;left:0;right:0;bottom:0;height:45%;z-index:2;pointer-events:none}
+.picks{display:flex;flex-direction:column;gap:6px;background:#000a;border-radius:10px;padding:8px 10px;text-align:left;max-width:560px;width:100%;font-size:13px}
+.picks .row{justify-content:space-between}
+/* shelf */
+.face{position:absolute;left:4%;right:4%;top:17%;bottom:5%;display:grid;gap:0;z-index:3}
+.sim .face{background:var(--wood2);border:6px solid var(--wood);border-radius:6px}
+.section{position:relative;display:grid;border-right:5px solid var(--wood)}
+.section:last-child{border-right:0}
+.cam .section{border-right-color:#ffffff66}
+.shelfrow{position:relative;border-bottom:6px solid var(--wood);overflow:visible;min-height:0}
+.cam .shelfrow{border-bottom-color:#ffffff66}
+.bk{position:absolute;bottom:0;border-radius:2px 2px 0 0}
+.cam .bk{opacity:.12}
+.bk.tgt{opacity:1!important;outline:3px solid var(--gold);outline-offset:1px;box-shadow:0 0 18px 6px #ffd54acc;animation:glow 1s ease-in-out infinite alternate;z-index:6}
+@keyframes glow{from{box-shadow:0 0 6px 2px #ffd54a88}to{box-shadow:0 0 24px 9px #ffd54aee}}
+.bk.flag{outline:2px dashed #ff6b4a}
+.bubble{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--gold);color:#2b2622;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;white-space:nowrap;z-index:7}
+.secnum{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:10px;color:#fff;opacity:.8}
+.msg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:24px;z-index:4;gap:8px}
+.msg .big{font-size:20px;font-weight:700}
+/* tables */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px}
+tr:hover td{background:#fafafa}
+.log{font-size:12px;max-height:180px;overflow:auto;display:flex;flex-direction:column;gap:4px}
+.log div{padding:5px 9px;background:#f4f4f5;border-radius:6px}
+label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:10px 0 4px}
+.modal{position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;z-index:100;padding:12px}
+.modal .panel{width:min(480px,100%);max-height:92vh;overflow:auto;margin:0}
+.scanbox{position:relative;width:100%;aspect-ratio:1;background:#111;border-radius:10px;overflow:hidden}
+.scanbox video{width:100%;height:100%;object-fit:cover}
+.scanbox .frame{position:absolute;inset:18%;border:3px solid #5ef2d6;border-radius:12px;box-shadow:0 0 0 999px #0006}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:14px;font-size:14px;z-index:200;box-shadow:0 6px 20px #0004;max-width:90vw;text-align:center}
+.progress{height:6px;background:#eee;border-radius:3px;overflow:hidden;margin-top:6px}
+.progress div{height:100%;background:var(--teal);width:0;transition:width .2s}
+#xrOverlay{position:fixed;inset:0;pointer-events:none;z-index:300}
+#xrOverlay .bar{position:absolute;left:12px;right:12px;top:12px;background:#000c;color:#fff;border-radius:12px;padding:10px 14px;font:600 17px -apple-system,sans-serif;pointer-events:auto;display:flex;gap:10px;align-items:center}
+.pchips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.pchip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer}
+.pchip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+#edMap{touch-action:none;cursor:crosshair}
+#edMap [data-node]{cursor:grab}
+.qrbox{display:flex;justify-content:center;padding:10px;background:#fff;border-radius:8px;margin-top:8px}
+.hero{background:linear-gradient(135deg,var(--maroon) 0%,#6a0d15 60%,var(--maroon-d) 100%);color:#fff;border-radius:16px;padding:34px 26px 26px;margin-bottom:18px;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:#ffffff0d}
+.hero.compact{padding-top:18px;padding-bottom:18px}.hero.compact p,.hero.compact .tries,.hero.compact h2,.hero.compact .eyebrow{display:none}
+.hero .eyebrow{font-size:12px;letter-spacing:1.4px;text-transform:uppercase;opacity:.85;font-weight:700}
+.hero h2{font-family:var(--serif);font-size:34px;line-height:1.1;margin:8px 0 8px;font-weight:700}
+.hero p{margin:0 0 18px;font-size:15px;opacity:.92;max-width:560px;line-height:1.45}
+.searchbox{position:relative;display:flex;align-items:center;background:#fff;border-radius:12px;box-shadow:0 8px 24px #00000033;max-width:720px;z-index:1}
+.searchbox svg{position:absolute;left:16px;width:22px;height:22px;stroke:var(--muted)}
+.searchbox input[type=search]{border:0;border-radius:12px;padding:17px 48px 17px 50px;font-size:17px;width:100%;color:var(--ink);background:transparent}
+.searchbox input:focus{outline:3px solid #F0AA00;outline-offset:2px}
+.qclear{position:absolute;right:10px;width:32px;height:32px;border-radius:50%;border:0;background:#eef0f1;color:var(--ink);font-size:18px;cursor:pointer}
+.tries{margin-top:12px;font-size:13px;opacity:.95;display:flex;gap:6px;flex-wrap:wrap;align-items:center;position:relative;z-index:1}
+.tries button{background:#ffffff26;color:#fff;border:1px solid #ffffff4d;border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer}
+.tries button:hover{background:#ffffff40}
+.sec-h{font-family:var(--serif);font-size:20px;margin:6px 0 12px;color:var(--ink)}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+@media(max-width:820px){.tiles{grid-template-columns:repeat(2,1fr);gap:8px}.tile{padding:11px}.tile .ic{width:34px;height:34px}.hero{border-radius:0;margin:-14px -14px 16px;padding:28px 18px 22px}.hero h2{font-size:28px}}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;font:inherit;color:var(--ink);transition:border-color .15s,box-shadow .15s,transform .15s}
+.tile:hover{border-color:var(--maroon);box-shadow:0 4px 14px #8210191f;transform:translateY(-1px)}
+.tile.on{border-color:var(--maroon);box-shadow:inset 0 0 0 1.5px var(--maroon)}
+.tile .ic{width:40px;height:40px;border-radius:10px;background:#f6e9ea;display:flex;align-items:center;justify-content:center}
+.tile .ic svg{width:22px;height:22px;stroke:var(--maroon);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tile b{font-size:14px}
+.tile span{font-size:12px;color:var(--muted)}
+.floordir{display:flex;flex-direction:column}
+.floorrow{display:grid;grid-template-columns:62px 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.floorrow:first-child{border-top:0}
+.floorrow .lv{font-family:var(--serif);font-weight:700;color:var(--maroon);font-size:30px;line-height:1;text-align:center}
+.floorrow .lv small{display:block;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:10px;letter-spacing:1px;color:var(--muted);font-weight:700;margin-bottom:2px}
+.rchip.word{font-family:inherit}
+.floorrow p{margin:0 0 6px;font-size:13px;color:var(--muted)}
+.rchip{border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 8px;font-size:12px;font-weight:700;color:var(--ink);cursor:pointer;margin:0 4px 4px 0;font-family:ui-monospace,Menlo,monospace}
+.rchip:hover{border-color:var(--maroon);color:var(--maroon)}
+.helpbox{background:#fff;border:1px solid var(--line);border-left:4px solid var(--maroon);border-radius:12px;padding:16px;margin-bottom:12px}
+.helpbox h4{margin:0 0 4px;font-family:var(--serif);font-size:16px}
+.helpbox p{margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.45}
+.reshead{display:flex;align-items:baseline;gap:8px;margin:4px 0 10px}
+.reshead h3{font-family:var(--serif);font-size:20px;margin:0}
+.bcard{display:flex;gap:0;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer;transition:box-shadow .15s,border-color .15s}
+.bcard:hover{border-color:#b9bcc0;box-shadow:0 4px 14px #0000000f}
+.bcard .stripe{width:6px;flex:none;background:var(--ok)}
+.bcard .stripe.out{background:var(--accent)}.bcard .stripe.wait{background:#F0AA00}.bcard .stripe.gray{background:#9aa1a8}
+.bcard .body{flex:1;padding:14px 16px;min-width:0}
+.bcard .tt{font-family:var(--serif);font-size:17px;font-weight:700;line-height:1.25}
+.bcard .au{font-size:13px;color:var(--muted);margin-top:2px}
+.bcard .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:9px}
+.callno{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:#f1f2f3;border-radius:5px;padding:2px 7px;color:var(--ink)}
+.where{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;color:var(--ink)}
+.where svg{width:16px;height:16px;flex:none;stroke:var(--maroon);fill:none;stroke-width:2}
+.bcard .acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.bcard .acts .btn{padding:8px 14px;font-size:13px;font-weight:600}
+.callout{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.callout .big{font-family:ui-monospace,Menlo,monospace;font-size:18px;font-weight:700;color:var(--maroon)}
+.empty{background:#fff;border:1px dashed var(--line);border-radius:12px;padding:20px;text-align:center;color:var(--muted);font-size:14px}
+/* ---- shared look for Cart, Route, AR, Shelf, Librarian (matches Find) ---- */
+.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px}
+.phead{background:linear-gradient(135deg,var(--maroon) 0%,#6a0d15 60%,var(--maroon-d) 100%);color:#fff;border-radius:16px;padding:22px 24px;margin-bottom:16px;position:relative;overflow:hidden}
+.phead:after{content:"";position:absolute;right:-60px;top:-70px;width:240px;height:240px;border-radius:50%;background:#ffffff0d;pointer-events:none}
+.phead>*{position:relative;z-index:1}
+.phead .eyebrow{font-size:12px;letter-spacing:1.4px;text-transform:uppercase;opacity:.85;font-weight:700}
+.phead h2{font-family:var(--serif);font-size:28px;line-height:1.15;margin:6px 0 6px;font-weight:700;color:#fff;overflow-wrap:anywhere}
+.phead p{margin:0;font-size:14px;opacity:.92;max-width:620px;line-height:1.45}
+.phead .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px;font-size:13px}
+.phead .meta code{background:#ffffff26;color:#fff}
+.phead .where{color:#fff;opacity:.95}.phead .where svg{stroke:#fff}
+.phead .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+.hbtn{display:inline-flex;align-items:center;gap:6px;background:#ffffff1f;color:#fff;border:1px solid #ffffff4d;border-radius:999px;padding:7px 13px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap}
+.hbtn:hover{background:#ffffff38}
+.hbtn.on{background:#fff;color:var(--maroon);border-color:#fff}
+.hbtn.solid{background:var(--accent);border-color:var(--accent)}
+.hbtn:disabled{opacity:.45;cursor:default}
+.hbtn .i{width:16px;height:16px}
+@media(max-width:820px){.phead{border-radius:0;margin:-14px -14px 14px;padding:20px 18px}.phead h2{font-size:24px}}
+.ic{width:36px;height:36px;border-radius:9px;background:#f6e9ea;color:var(--maroon);display:flex;align-items:center;justify-content:center;flex:none}
+.ic .i{width:20px;height:20px}
+.ic.warn{background:#fdf3dc;color:#8a6312}.ic.gray{background:#eef0f1;color:var(--muted)}.ic.red{background:#fde6ea;color:var(--accent)}
+.panel .sec-h,.panel>h2{margin-top:0}
+.ph{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.ph h2{margin:0;flex:1;min-width:0}
+.ph .note{font-size:12px;color:var(--muted)}
+.field{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;align-items:center;margin-top:10px}
+.field>label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.field select,.field input{width:100%;min-width:0}
+@media(max-width:480px){.field{grid-template-columns:minmax(0,1fr);gap:4px}}
+.check{display:inline-flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.bcard.mini .body{padding:12px 14px}
+.bcard.mini .tt{font-size:16px}
+.bcard .x{flex:none;align-self:flex-start;margin:10px 10px 0 0;width:32px;height:32px;border-radius:50%;border:0;background:#eef0f1;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.bcard .x:hover{background:#fde6ea;color:var(--accent)}
+.bcard .skip{display:flex;gap:6px;align-items:flex-start;margin-top:8px;font-size:13px;color:#8a1a26}
+.bcard .num{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.trip{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:14px}
+.trip .sum{display:grid;grid-template-columns:repeat(3,1fr);background:#fbf5f5;border-bottom:1px solid var(--line)}
+.trip .sum div{padding:10px 12px;border-left:1px solid var(--line)}.trip .sum div:first-child{border-left:0}
+.trip .sum b{display:block;font-family:var(--serif);font-size:22px;color:var(--maroon);line-height:1.1}
+.trip .sum span{font-size:12px;color:var(--muted)}
+.trip ol{list-style:none;margin:0;padding:6px 12px}
+.trip li{display:flex;gap:10px;padding:8px 0;border-top:1px solid #eceeef;font-size:13px;line-height:1.4}.trip li:first-child{border-top:0}
+.trip li .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.trip li.fin .n{background:var(--maroon-d)}
+.trip .acts{display:flex;gap:8px;flex-wrap:wrap;padding:10px 12px;border-top:1px solid var(--line)}
+.bigic{width:84px;height:84px;border-radius:50%;background:#821019d9;border:2px solid #ffffff55;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px #0007}
+.bigic .i{width:44px;height:44px;stroke:#fff;stroke-width:2}
+.picks code{background:#ffffff26;color:#fff}
+.picks .btn.sec{background:#ffffffe6}
+.stagewrap{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:12px}
+.stagewrap .stage{border-radius:10px}
+.facebar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.facebar .lbl{font-size:13px;color:var(--muted);margin-right:4px}
+.sec-h.grp{display:flex;align-items:center;gap:8px;margin:22px 0 12px}
+.sec-h.grp:after{content:"";flex:1;height:1px;background:var(--line)}
+.status{display:flex;flex-direction:column;gap:6px}
+.status div{display:flex;gap:8px;align-items:center}
+.status .i{width:18px;height:18px}
+.ok-t{color:var(--ok)}.bad-t{color:var(--accent)}
+.notes{margin:-4px 0 12px}.notes .card:first-child{margin-top:0}
+.phead .where{margin-top:10px;font-size:14px}
+.phead .meta .i{width:15px;height:15px}
+.trip li .n .i{width:14px;height:14px;stroke-width:2.5}
+.bubble .i{width:12px;height:12px;vertical-align:-2px;margin-right:3px}
+.empty .i{width:20px;height:20px;vertical-align:-5px}
+#printSheet{display:none}
+@media print{
+  body>*:not(#printSheet){display:none!important}
+  #printSheet{display:grid!important;grid-template-columns:1fr 1fr;gap:18px;padding:10px}
+  .mk{border:2px dashed #999;padding:14px;text-align:center;break-inside:avoid;font-family:sans-serif}
+  .mk .qr{display:flex;justify-content:center;margin:8px 0}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-cam" viewBox="0 0 24 24"><path d="M3 8.5a2 2 0 012-2h2.2L8.8 4h6.4l1.6 2.5H19a2 2 0 012 2V18a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><circle cx="12" cy="13" r="3.6"/></symbol>
+  <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.6 8.4l-2.1 5.1-5.1 2.1 2.1-5.1z"/></symbol>
+  <symbol id="i-vol" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.2a4 4 0 010 5.6"/></symbol>
+  <symbol id="i-volon" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.2a4 4 0 010 5.6M18.8 6.4a8 8 0 010 11.2"/></symbol>
+  <symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><rect x="8.5" y="8.5" width="7" height="7" rx="1"/></symbol>
+  <symbol id="i-labels" viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><path d="M8 9.5h8M8 12.5h8M8 15.5h5"/></symbol>
+  <symbol id="i-xr" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12L4 7.5M12 12v9"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9.5" cy="19.5" r="1.5"/><circle cx="17.5" cy="19.5" r="1.5"/><path d="M2.5 3.5h3l2.3 11a1.6 1.6 0 001.6 1.3h8a1.6 1.6 0 001.6-1.2L20.8 7H6.3"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4.5 4.5 0 006.4 0l3-3a4.5 4.5 0 00-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 00-6.4 0l-3 3a4.5 4.5 0 006.4 6.4l1-1"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4L3.5 6.3v13.5L9 17.5l6 2.5 5.5-2.3V4.2L15 6.5z"/><path d="M9 4v13.5M15 6.5V20"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5M4.5 20h15"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 16V5M7 9.5l5-5 5 5M4.5 20h15"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/></symbol>
+  <symbol id="i-live" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M8.2 8.2a5.4 5.4 0 000 7.6M15.8 8.2a5.4 5.4 0 010 7.6M5.3 5.3a9.5 9.5 0 000 13.4M18.7 5.3a9.5 9.5 0 010 13.4"/></symbol>
+  <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.5"/><path d="M4.5 5.5v13c0 1.4 3.4 2.5 7.5 2.5s7.5-1.1 7.5-2.5v-13M4.5 12c0 1.4 3.4 2.5 7.5 2.5s7.5-1.1 7.5-2.5"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4.5h11.5l-2.2 4 2.2 4H5"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M2.5 5.5C5.5 4.5 8.5 4.6 12 6.5c3.5-1.9 6.5-2 9.5-1v13c-3-1-6-.9-9.5 1-3.5-1.9-6.5-2-9.5-1z"/><path d="M12 6.5v13"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0119 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-checkc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.3l2.8 2.8L16.2 9.6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 4.3L2.6 18a2 2 0 001.7 3h15.4a2 2 0 001.7-3L13.7 4.3a2 2 0 00-3.4 0z"/><path d="M12 10v4M12 17.3v.1"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-xc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+  <symbol id="i-aup" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+  <symbol id="i-adown" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
+  <symbol id="i-move" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M9.5 5.5L12 3l2.5 2.5M9.5 18.5L12 21l2.5-2.5M5.5 9.5L3 12l2.5 2.5M18.5 9.5L21 12l-2.5 2.5"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13"/></symbol>
+  <symbol id="i-rect" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1.5"/><path d="M16 18l4 0 0-4"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h15l-4-4M20 16H5l4 4"/></symbol>
+  <symbol id="i-turn" viewBox="0 0 24 24"><path d="M20 12a8 8 0 11-2.3-5.7M20 4v5h-5"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></symbol>
+  <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H16a3.5 3.5 0 000-7H8a3.5 3.5 0 010-7h7.5"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5V5a1.5 1.5 0 00-1.5-1.5H5A1.5 1.5 0 003.5 5v9A1.5 1.5 0 005 15.5h3.5"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4.5 18a9 9 0 1115 0"/><path d="M12 13l4-4"/></symbol>
+</svg>
+<header>
+  <div><h1>ShelfFinder</h1><div class="sub" id="libName"></div></div>
+  <span id="syncChip">Local</span>
+</header>
+<nav id="nav">
+  <button data-tab="find" class="active">Find</button>
+  <button data-tab="cart">Cart<span class="badge hidden" id="cartBadge"></span></button>
+  <button data-tab="nav">Route</button>
+  <button data-tab="ar">AR Guide</button>
+  <button data-tab="shelf">Shelf</button>
+  <button data-tab="lib">Librarian<span class="badge hidden" id="repBadge"></span></button>
+</nav>
+
+<main>
+<!-- ============ FIND ============ -->
+<section id="tab-find">
+  <div class="hero">
+    <div class="eyebrow">Colgate University Libraries</div>
+    <h2>Find it on the shelf.</h2>
+    <p>Search for a book, a call number or a room. ShelfFinder shows where it is right now and walks you there.</p>
+    <div class="searchbox">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="q" type="search" aria-label="Search books, call numbers and rooms" placeholder="Search by title, author, call number or room" autocomplete="off" enterkeyhint="search">
+      <button class="qclear hidden" id="qClear" aria-label="Clear search">×</button>
+    </div>
+    <div class="tries"><span>Try:</span><button data-try="Pride and Prejudice">Pride and Prejudice</button><button data-try="PR4034">PR4034</button><button data-try="Tolstoy">Tolstoy</button><button data-try="reading room">reading rooms</button></div>
+  </div>
+
+  <div id="findHome">
+    <h3 class="sec-h">Find a place</h3>
+    <div class="tiles" id="placeChips"></div>
+    <div id="placeList"></div>
+    <div class="grid2">
+      <div class="panel">
+        <h3 class="sec-h" style="margin-top:0">What’s on each floor</h3>
+        <div class="floordir" id="floorDir"></div>
+      </div>
+      <div>
+        <div class="helpbox"><h4>Getting several books?</h4><p>Add them to your cart and ShelfFinder plans the quickest route to collect them all, ending at the Circulation Desk.</p><button class="btn outline" data-goto="cart">Open my cart</button></div>
+        <div class="helpbox"><h4>Already in the library?</h4><p>Scan the ShelfFinder code on the nearest stairway or elevator, and directions start from where you’re standing.</p><button class="btn outline" id="homeScan">Scan a code</button></div>
+        <div class="helpbox"><h4>Need a hand?</h4><p>Staff at the Circulation Desk on Level 3 can help you find anything.</p><button class="btn outline" data-place="L3:circ">Directions to the desk</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="findResults" class="hidden">
+    <div id="callCard"></div>
+    <div id="resPlaces"></div>
+    <div id="resHead"></div>
+    <div class="list" id="results"></div>
+    <div class="list" id="liveResults"></div>
+  </div>
+</section>
+
+<!-- ============ CART ============ -->
+<section id="tab-cart" class="hidden">
+  <div class="phead">
+    <div class="eyebrow">Your cart</div>
+    <h2>Collect several books in one trip.</h2>
+    <p>Add books from Find. ShelfFinder works out the quickest order to collect them all, across every floor, and finishes where you choose.</p>
+  </div>
+  <div id="listBanner"></div>
+  <div class="grid2">
+    <div class="panel">
+      <div class="ph"><h2>Books in your cart</h2><span class="note" id="cartCount"></span><button class="btn sec sm" id="cartClear">Clear</button></div>
+      <div class="list" id="cartList" style="margin-top:0"></div>
+    </div>
+    <div>
+      <div class="panel">
+        <div class="ph"><h2>Plan your trip</h2></div>
+        <div class="field" style="margin-top:0"><label for="cartStart">Start</label><select id="cartStart"></select></div>
+        <div class="field"><label for="cartEnd">Finish</label>
+          <select id="cartEnd">
+            <option value="circ">Circulation Desk (check out) · Level 3</option>
+            <option value="start">Back where I started</option>
+            <option value="none">Wherever the last book is</option>
+          </select></div>
+        <div class="row" style="margin-top:14px"><label class="check"><input type="checkbox" id="cartAvoid"> Avoid stairs</label><span class="grow"></span>
+          <button class="btn" id="cartPlan">Plan quickest route →</button></div>
+        <div id="cartPlanOut"></div>
+      </div>
+      <div class="helpbox" id="listPanel">
+        <h4>Share as a reading list</h4>
+        <p>Professors: build a cart, give it a name, and share the link or QR code. Students who open it get the same books and the quickest route.</p>
+        <div class="row"><input id="listTitle" class="grow" placeholder="e.g. HIST 101 · Week 5 readings"><button class="btn outline" id="listMake"><svg class="i"><use href="#i-link"/></svg>Create link &amp; QR</button></div>
+        <div id="listOut"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ROUTE ============ -->
+<section id="tab-nav" class="hidden">
+  <div id="destCard"></div>
+  <div class="panel">
+    <div class="row" style="gap:10px 14px">
+      <div class="field grow" style="margin-top:0;min-width:240px"><label for="startSel">Start</label><select id="startSel"></select></div>
+      <button class="btn sec" id="scanStart"><svg class="i"><use href="#i-scan"/></svg>Scan marker</button>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <label class="check"><input type="checkbox" id="avoidStairs"> Avoid stairs (elevators only)</label>
+      <span class="grow"></span>
+      <button class="btn" id="goAR">Start AR guide →</button>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <div class="ph"><h2>Map</h2><span class="note" id="routeSummary"></span></div>
+      <div class="floor-tabs" id="floorTabs" style="margin-top:0"></div>
+      <div class="mapwrap"><svg id="map"></svg></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><h2>Directions</h2></div>
+      <ol class="steps" id="steps"></ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============ AR GUIDE ============ -->
+<section id="tab-ar" class="hidden">
+  <div class="phead">
+    <div class="eyebrow">AR guide</div>
+    <h2 id="arTitle">AR guide</h2>
+    <p>Hold your phone up and follow the arrow. Scan the marker on any stair landing to re-route from there.</p>
+    <div class="acts">
+      <button class="hbtn" id="camBtn"><svg class="i"><use href="#i-cam"/></svg>Camera</button>
+      <button class="hbtn" id="compassBtn"><svg class="i"><use href="#i-compass"/></svg>Compass</button>
+      <button class="hbtn" id="voiceBtn"><svg class="i"><use href="#i-vol"/></svg>Voice</button>
+      <button class="hbtn" id="arScan"><svg class="i"><use href="#i-scan"/></svg>Scan</button>
+      <button class="hbtn hidden" id="xrBtn"><svg class="i"><use href="#i-xr"/></svg>Floor AR</button>
+    </div>
+  </div>
+  <div class="stagewrap">
+    <div class="stage sim" id="arStage">
+      <video id="arVideo" playsinline muted class="hidden"></video>
+      <svg class="floorpath" viewBox="0 0 100 50" preserveAspectRatio="none" id="floorPath"></svg>
+      <div class="hud top"><span class="chip" id="arFloor"></span><span class="chip" id="arProg"></span></div>
+      <div class="guide" id="guide"></div>
+      <div class="inset"><svg id="inset"></svg></div>
+      <div class="hud bottom" style="pointer-events:auto">
+        <button class="btn sec" id="arPrev"><svg class="i"><use href="#i-left"/></svg>Back</button>
+        <button class="btn" id="arNext">Next<svg class="i"><use href="#i-right"/></svg></button>
+      </div>
+    </div>
+    <p class="muted small" id="arNote" style="margin:10px 4px 2px"></p>
+  </div>
+</section>
+
+<!-- ============ SHELF ============ -->
+<section id="tab-shelf" class="hidden">
+  <div class="phead">
+    <div class="eyebrow">Shelf view</div>
+    <h2 id="shelfTitle">Shelf view</h2>
+    <p>Your book glows on the shelf. Books that look out of call-number order are flagged.</p>
+    <div class="acts">
+      <button class="hbtn" id="camBtn2"><svg class="i"><use href="#i-cam"/></svg>Camera</button>
+      <button class="hbtn" id="shelfScan"><svg class="i"><use href="#i-scan"/></svg>Scan range</button>
+      <button class="hbtn solid" id="ocrBtn"><svg class="i"><use href="#i-labels"/></svg>Read shelf labels</button>
+    </div>
+  </div>
+  <div class="stagewrap">
+    <div class="facebar" id="faceRow"></div>
+    <div class="stage sim" id="shelfStage" style="aspect-ratio:16/10">
+      <video id="shelfVideo" playsinline muted class="hidden"></video>
+      <div class="hud top"><span class="chip" id="shelfHudL"></span><span class="chip" id="shelfHudR"></span></div>
+      <div id="shelfBody"></div>
+    </div>
+  </div>
+  <div id="shelfInfo"></div>
+</section>
+
+<!-- ============ LIBRARIAN ============ -->
+<section id="tab-lib" class="hidden">
+  <div class="phead">
+    <div class="eyebrow">Librarian tools</div>
+    <h2>Keep every location accurate.</h2>
+    <p>See what needs checking, confirm where books are, edit the map and manage the catalog.</p>
+    <div class="acts">
+      <button class="hbtn solid" id="shelveBtn"><svg class="i"><use href="#i-scan"/></svg>Scan to shelve</button>
+      <button class="hbtn" id="ocrBtn2"><svg class="i"><use href="#i-labels"/></svg>Read a whole shelf</button>
+    </div>
+  </div>
+  <div class="kpis" id="kpis" style="margin-bottom:12px"></div>
+  <div class="grid2">
+    <div class="panel">
+      <div class="ph"><h2>Needs attention</h2></div>
+      <div id="attention"></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><h2>Problem spots</h2><div class="row" id="heatTabs" style="gap:6px"></div></div>
+      <div class="mapwrap"><svg id="heatMap"></svg></div>
+      <p class="muted small">Darker = more “Not here” reports, misshelved books, or locations not confirmed in 30+ days.</p>
+      <h3>Top searches</h3><div id="topSearch" class="small"></div>
+    </div>
+  </div>
+
+  <h3 class="sec-h grp">Catalog</h3>
+  <div class="panel">
+    <div class="ph"><h2>Inventory</h2>
+      <input id="invQ" type="search" placeholder="Filter…" aria-label="Filter inventory" style="width:180px;font-size:14px;padding:8px">
+      <button class="btn sec sm" id="addBtn"><svg class="i"><use href="#i-plus"/></svg>Add book</button></div>
+    <div style="overflow:auto"><table id="inv"></table></div>
+  </div>
+
+  <h3 class="sec-h grp">Map</h3>
+  <div class="panel">
+    <div class="ph"><h2>Map editor</h2><div class="row" id="edFloors" style="gap:6px"></div></div>
+    <div class="row edmodes" id="edModes" style="gap:6px">
+      <button class="ftab" data-mode="move"><svg class="i"><use href="#i-move"/></svg>Move points</button>
+      <button class="ftab" data-mode="add"><svg class="i"><use href="#i-plus"/></svg>Add point</button>
+      <button class="ftab" data-mode="connect"><svg class="i"><use href="#i-link"/></svg>Connect / unlink</button>
+      <button class="ftab" data-mode="delete"><svg class="i"><use href="#i-trash"/></svg>Delete point</button>
+      <button class="ftab" data-mode="blocks"><svg class="i"><use href="#i-rect"/></svg>Move / resize stacks</button>
+    </div>
+    <p class="muted small" id="edHelp"></p>
+    <div class="mapwrap"><svg id="edMap"></svg></div>
+    <div id="edInspector"></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="edDownload"><svg class="i"><use href="#i-down"/></svg>Download library-data.js</button><button class="btn sec" id="edReset">Undo all map edits</button><span class="small grow" id="edCheck" style="text-align:right"></span></div>
+  </div>
+
+  <h3 class="sec-h grp">Connections &amp; setup</h3>
+  <div class="panel">
+    <div class="ph"><span class="ic"><svg class="i"><use href="#i-live"/></svg></span><h2>Live Colgate catalog</h2></div>
+    <p class="muted small" style="margin:0 0 10px">Paste the web-app URL of the ShelfFinder catalog proxy (the Google Apps Script that holds the API key — see server/SETUP.md). The API key itself never goes in the app.</p>
+    <div class="row"><input id="liveUrl" class="grow" placeholder="https://script.google.com/macros/s/…/exec"><button class="btn" id="liveSave">Connect</button><button class="btn sec" id="liveTest">Test</button><button class="btn sec" id="liveLocs">Load locations</button></div>
+    <div id="liveOut"></div>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <div class="ph"><span class="ic"><svg class="i"><use href="#i-db"/></svg></span><h2>Shared database</h2></div>
+      <p class="muted small" style="margin-top:0">Connect a Firebase Realtime Database so every phone sees the same locations live. Leave empty to work locally.</p>
+      <div class="row"><input id="fbUrl" class="grow" placeholder="https://your-project-default-rtdb.firebaseio.com"><button class="btn" id="fbConnect">Connect</button></div>
+      <p class="small" id="fbStatus"></p>
+      <h3>Catalog data</h3>
+      <div class="row">
+        <label class="btn sec"><svg class="i"><use href="#i-up"/></svg>Import catalog CSV<input type="file" id="csvFile" accept=".csv,text/csv" class="hidden"></label>
+        <button class="btn sec" id="exportBtn"><svg class="i"><use href="#i-down"/></svg>Export JSON</button>
+        <label class="btn sec"><svg class="i"><use href="#i-up"/></svg>Import JSON<input type="file" id="importFile" accept="application/json" class="hidden"></label>
+      </div>
+      <p class="muted small">CSV needs “Title” and “Call Number” columns (Author, ISBN/Barcode, Status optional) — the format most catalog exports use.</p>
+      <label class="f" for="catUrl">Catalog search link (for “Check catalog / hold” buttons). Use {q} for the search text.</label>
+      <input id="catUrl" style="width:100%" placeholder="https://…/search?query={q}">
+      <label class="f" for="deepLink">“Find it on the shelf” link to put in catalog records</label>
+      <input id="deepLink" style="width:100%" readonly>
+    </div>
+    <div class="panel">
+      <div class="ph"><span class="ic"><svg class="i"><use href="#i-gauge"/></svg></span><h2>Markers &amp; calibration</h2></div>
+      <button class="btn sec" id="printBtn"><svg class="i"><use href="#i-print"/></svg>Print QR markers</button>
+      <p class="muted small">Tape them at each stair landing, elevator, entrance and on the end of each cataloged range.</p>
+      <div class="row small" style="gap:14px"><label>Metres per map unit <input id="mpp" type="number" step="0.01" min="0.02" max="0.5" style="width:80px"></label>
+        <label>Map north offset° <input id="north" type="number" step="1" style="width:70px"></label></div>
+      <h3>Activity log</h3><div class="log" id="log"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- Scanner modal -->
+<div class="modal hidden" id="scanModal">
+  <div class="panel">
+    <div class="row"><h2 class="grow" style="margin:0" id="scanTitle">Scan</h2><button class="btn sec sm" id="scanClose" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+    <div class="scanbox" style="margin-top:10px"><video id="scanVideo" playsinline muted></video><div class="frame"></div></div>
+    <p class="muted small" id="scanNote"></p>
+    <label class="f">Or choose / type it</label>
+    <div class="row"><select id="scanPick" class="grow"></select><button class="btn" id="scanUse">Use</button></div>
+  </div>
+</div>
+
+<!-- Shelve / edit modal -->
+<div class="modal hidden" id="editModal">
+  <div class="panel">
+    <h2 id="editTitle">Shelve book</h2>
+    <div id="editBody"></div>
+    <div class="row" style="margin-top:14px;justify-content:flex-end">
+      <button class="btn sec" id="editCancel">Cancel</button><button class="btn" id="editSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shelf OCR modal -->
+<div class="modal hidden" id="ocrModal">
+  <div class="panel">
+    <div class="row"><h2 class="grow" style="margin:0">Read shelf labels</h2><button class="btn sec sm" id="ocrClose" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+    <p class="muted small">Photograph one shelf straight-on. ShelfFinder reads the call-number labels left to right, updates every book’s position, and flags anything out of order.</p>
+    <div class="row small">
+      <label>Range <select id="oRange"></select></label>
+      <label>Face <select id="oFace"></select></label>
+      <label>Section <select id="oSec"></select></label>
+      <label>Shelf <select id="oShelf"></select></label>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label class="btn"><svg class="i"><use href="#i-cam"/></svg>Take / choose photo<input type="file" id="ocrFile" accept="image/*" capture="environment" class="hidden"></label>
+      <button class="btn sec" id="ocrFrame">Use live camera frame</button>
+    </div>
+    <label class="f">No photo? Type the call numbers you see, left to right (one per line)</label>
+    <textarea id="ocrText" rows="3" style="width:100%" placeholder="B580 .A3&#10;B3279.H48 S413"></textarea>
+    <div class="row" style="margin-top:6px"><button class="btn sec" id="ocrTyped">Check typed list</button></div>
+    <p class="small" id="ocrStatus"></p><div class="progress hidden" id="ocrProg"><div></div></div>
+    <div id="ocrResult"></div>
+  </div>
+</div>
+
+<div id="xrOverlay" class="hidden"><div class="bar"><span id="xrText" style="flex:1"></span><button class="btn sm" id="xrExit">Exit</button></div></div>
+<div id="printSheet"></div>
+
+<script>/*__DATA__*/</script>
+<script>/*__CORE__*/</script>
+<script>
+const MAPS = /*__MAPS__*/{};
+(() => {
+'use strict';
+const D = window.SF_DATA, C = window.SFCore;
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const ic = (k, c) => `<svg class="i${c ? ' ' + c : ''}" aria-hidden="true"><use href="#i-${k}"/></svg>`;
+const DAY = 864e5;
+
+// ---------------- State ----------------
+const S = {
+  tab: 'find', books: clone(D.books), log: [], sel: null, mode: 'single',
+  cart: [], tripEnd: 'circ', trip: null, stops: [],
+  start: D.entrances[0], avoidStairs: false, mapFloor: null,
+  route: null, steps: [], arStep: 0,
+  settings: { mpp: 0.1, north: 0, catalogUrl: D.catalogSearchUrl || '', fbUrl: '', liveUrl: D.liveCatalogUrl || '' },
+  heading: null, cam: false, stream: null, voice: false, spoken: null,
+  shelfBookId: null, shelfFace: null, facingRange: null,
+  searches: {}, heatFloor: 'L2'
+};
+// demo: give each book a "last confirmed" time and empty report list
+S.books.forEach((b) => { b.reports = b.reports || []; if (!b.seen) b.seen = new Date(Date.now() - (b.loc ? (b.id % 3) + 1 : ((b.id * 7) % 45) + 2) * DAY).toISOString(); });
+let G = C.buildGraph(D, S.settings.mpp);
+$('libName').textContent = D.library;
+
+const FLOOR = (f) => D.floors[f];
+const blockById = (id) => D.blocks.find((b) => b.id === id);
+const rangeById = (id) => D.ranges.find((r) => r.id === id);
+const bookById = (id) => S.books.find((b) => b.id === id);
+const nodeName = (id) => { const n = G[id]; return (n && n.label ? n.label : id) + (n ? ' · ' + FLOOR(n.floor).name : ''); };
+const openReports = (b) => (b.reports || []).filter((r) => r.open).length;
+function toast(m) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
+function addLog(m) { S.log.unshift(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' · ' + m); S.log = S.log.slice(0, 120); }
+function ago(iso) {
+  if (!iso) return 'never';
+  const d = (Date.now() - new Date(iso).getTime()) / DAY;
+  if (d < 1 / 24) return 'just now'; if (d < 1) return Math.round(d * 24) + ' h ago'; if (d < 14) return Math.round(d) + ' d ago';
+  return Math.round(d / 7) + ' wk ago';
+}
+addLog('Loaded demo catalog (' + S.books.length + ' books)');
+
+// ---------------- Shared database (Firebase REST + live stream) ----------------
+const Sync = {
+  url: null, es: null, tree: {},
+  async connect(url) {
+    url = url.trim().replace(/\/+$/, '');
+    if (!/^https:\/\//.test(url)) throw new Error('Use the https:// database URL');
+    const base = url + '/shelffinder/books';
+    const r = await fetch(base + '.json'); if (!r.ok) throw new Error('HTTP ' + r.status + ' — check the URL and database rules');
+    let data = await r.json();
+    if (!data) { data = {}; S.books.forEach((b) => { data['b' + b.id] = b; }); const w = await fetch(base + '.json', { method: 'PUT', body: JSON.stringify(data) }); if (!w.ok) throw new Error('Could not write (rules?)'); }
+    this.url = url; this.tree = data; this.apply();
+    this.es && this.es.close();
+    this.es = new EventSource(base + '.json');
+    const on = (type) => (e) => { try { const m = JSON.parse(e.data); this.tree = C.applyFbEvent(this.tree, type, m.path, m.data); this.apply(); } catch (err) {} };
+    this.es.addEventListener('put', on('put')); this.es.addEventListener('patch', on('patch'));
+    this.es.onerror = () => setSync('Reconnecting…');
+    this.es.onopen = () => setSync('● Live');
+    setSync('● Live'); S.settings.fbUrl = url; addLog('Connected to shared database');
+  },
+  apply() {
+    S.books = Object.values(this.tree || {}).filter((b) => b && b.id != null).map((b) => Object.assign(b, { reports: Array.isArray(b.reports) ? b.reports : Object.values(b.reports || {}) })).sort((a, b) => a.id - b.id);
+    if (S.mode === 'trip' || S.sel) computeRoute(true); else renderAll();
+  },
+  save(b) {
+    if (!this.url) return;
+    fetch(`${this.url}/shelffinder/books/b${b.id}.json`, { method: 'PUT', body: JSON.stringify(b) }).catch(() => toast('Sync failed — change kept on this phone'));
+  },
+  disconnect() { this.es && this.es.close(); this.es = null; this.url = null; setSync('Local'); }
+};
+function setSync(t) { $('syncChip').textContent = t; $('fbStatus').textContent = Sync.url ? `Connected: ${Sync.url} · ${t}` : 'Not connected — working locally.'; }
+function touch(b) { Sync.save(b); }
+
+// Markers: entrances, every connector landing, every range face
+function allMarkers() {
+  const out = [];
+  for (const e of D.entrances) out.push({ code: 'SF:' + e, kind: 'node', id: e, name: nodeName(e) });
+  for (const c of D.connectors) for (const f of c.floors) out.push({ code: `SF:${f}:${c.id}`, kind: 'node', id: `${f}:${c.id}`, name: `${c.name} · ${FLOOR(f).name}` });
+  for (const r of D.ranges) for (const face of r.faces) out.push({ code: `SF:RANGE:${r.id}:${face}`, kind: 'range', range: r.id, face, name: `${r.name} · face ${face}` });
+  return out;
+}
+const MARKERS = allMarkers();
+
+// ---------------- Where is a book? ----------------
+function whereIs(b) {
+  const L = C.lookup(b.call, D);
+  const res = { lookup: L, status: b.status, block: L.ok ? L.block : null, range: null, exact: null };
+  if (b.loc && b.status === 'shelf') { const r = rangeById(b.loc.range); if (r) { res.range = r; res.exact = b.loc; res.block = blockById(r.block); } }
+  return res;
+}
+function statusPill(b) {
+  return ({ shelf: '<span class="pill">On shelf</span>', out: '<span class="pill out">Checked out</span>', cart: '<span class="pill cart">Return cart</span>', lasr: '<span class="pill lasr">LASR storage</span>', missing: '<span class="pill miss">Missing</span>', transit: '<span class="pill cart">In transit / on hold</span>', away: '<span class="pill gray">Not on shelf</span>', elsewhere: '<span class="pill gray">Other library</span>', online: '<span class="pill lasr">Online</span>' }[b.status] || '') +
+    (b.live ? ' <span class="pill" style="background:#efe8de;color:#5c4a38">Colgate catalog</span>' : '') +
+    (openReports(b) ? ` <span class="pill warn">Reported not there ×${openReports(b)}</span>` : '');
+}
+function blockName(b) { return b.label || (b.id + ' stacks'); }
+function locLine(b) {
+  const w = whereIs(b);
+  if (b.status === 'out') return 'Checked out';
+  if (b.status === 'cart') return 'Return cart · Circulation Desk, Level 3';
+  if (b.status === 'lasr') return 'LASR automated storage — request through the catalog';
+  if (b.status === 'missing') return 'Missing — library is searching';
+  if (b.status === 'transit') return 'In transit or on the hold shelf — ask at the Circulation Desk';
+  if (b.status === 'away') return 'Not on the shelf right now' + (b.statusText ? ` (${b.statusText})` : '');
+  if (b.status === 'elsewhere') return b.placeNote || 'At another library';
+  if (b.status === 'online') return 'Available online — open it from the catalog';
+  const cp = livePlace(b);
+  if (cp && cp.kind === 'node' && G[cp.node]) return `${FLOOR(G[cp.node].floor).name} · ${cp.label}`;
+  if (!w.block) return w.lookup.msg || 'Location unknown';
+  const fl = FLOOR(w.block.floor).name;
+  if (w.exact) return `${fl} · ${blockName(w.block)} · ${w.range.name.split(' · ')[0]}, face ${w.exact.face}, section ${w.exact.section}, shelf ${w.exact.shelf}`;
+  return `${fl} · ${blockName(w.block)}`;
+}
+// Where to walk for a book (null node = can't walk there)
+function destFor(b) {
+  const w = whereIs(b);
+  if (b.status === 'cart') return { node: 'L3:circ', label: 'the Circulation Desk', note: 'Just returned — it’s on the return cart.' };
+  if (b.status !== 'shelf') return { node: null, reason: locLine(b) };
+  const cp = livePlace(b);
+  if (cp && cp.kind === 'node' && G[cp.node]) return { node: cp.node, label: cp.label, note: b.almaLoc && b.almaLoc.locationName ? `Shelved in “${b.almaLoc.locationName}”.` : '' };
+  if (!w.block) return { node: null, reason: w.lookup.msg };
+  return { node: w.block.floor + ':' + w.block.node, label: blockName(w.block), block: w.block, range: w.range, exact: w.exact };
+}
+function livePlace(b) { return b.almaLoc ? C.catalogPlace(b.almaLoc, D) : null; }
+function catalogLink(b) { return S.settings.catalogUrl ? S.settings.catalogUrl.replace('{q}', encodeURIComponent(b.title + ' ' + (b.author || ''))) : ''; }
+
+// ---------------- Not here ----------------
+function reportNotHere(id) {
+  const b = bookById(id); if (!b) return;
+  b.reports = b.reports || []; b.reports.push({ at: new Date().toISOString(), open: true });
+  addLog(`Patron reported “${b.title}” not at ${locLine(b)}`); touch(b);
+  toast('Thanks — a librarian will check. Also look on nearby shelves and the return cart at the Circulation Desk.');
+  renderAll();
+}
+function closeReports(b) { (b.reports || []).forEach((r) => { r.open = false; }); }
+
+// ---------------- Cart ----------------
+function inCart(id) { return S.cart.includes(id); }
+function toggleCart(id) {
+  const b = bookById(id);
+  if (inCart(id)) { S.cart = S.cart.filter((x) => x !== id); toast('Removed from cart'); }
+  else { S.cart.push(id); toast(`Added “${b.title}” · ${S.cart.length} in cart`); }
+  if (S.mode === 'trip') S.trip = null;
+  renderAll();
+}
+function cartGroups() {
+  const groups = {}, unavailable = [];
+  for (const id of S.cart) {
+    const b = bookById(id); if (!b) continue;
+    const d = destFor(b);
+    if (d.node) (groups[d.node] = groups[d.node] || { node: d.node, label: d.label, books: [] }).books.push(b);
+    else unavailable.push({ b, reason: d.reason });
+  }
+  return { groups, unavailable };
+}
+
+// ---------------- LIVE COLGATE CATALOG (via the secure proxy) ----------------
+S.live = { q: '', loading: false, error: '', ids: [], total: 0 };
+let liveTimer = null, liveSeq = 0;
+async function liveGet(params) {
+  const u = (S.settings.liveUrl || '').trim();
+  if (!u) throw new Error('Live catalog is not connected (Librarian → Live Colgate catalog).');
+  const r = await fetch(u + (u.includes('?') ? '&' : '?') + new URLSearchParams(params).toString());
+  let j; try { j = await r.json(); } catch (e) { throw new Error('The proxy did not return JSON — check the web app URL and that it is deployed for “Anyone”.'); }
+  if (!j.ok) throw new Error(j.error || 'Catalog error');
+  return j.data;
+}
+function applyPlaceStatus(b, st) {
+  const pl = livePlace(b) || { kind: 'call' };
+  b.placeNote = pl.note || '';
+  if (pl.kind === 'status' && (st === 'shelf' || st === 'transit' || st === 'away')) return pl.status;
+  return st;
+}
+function upsertLive(rec) {
+  const call = C.cleanCall(rec.callNumber);
+  let b = S.books.find((x) => (rec.mms && x.mms === rec.mms) || (call && C.normCall(call).length >= 4 && C.normCall(x.call) === C.normCall(call)));
+  if (!b) { b = { id: Math.max(0, ...S.books.map((x) => x.id)) + 1, title: rec.title, author: rec.author, call, isbn: rec.isbn || '', live: true, reports: [], seen: null }; S.books.push(b); }
+  Object.assign(b, { mms: rec.mms || b.mms || null, year: rec.year || b.year, type: rec.type || b.type });
+  b.almaLoc = { libraryCode: rec.libraryCode, libraryName: rec.libraryName, locationCode: rec.locationCode, locationName: rec.locationName };
+  if (!b.call && call) b.call = call;
+  if (!b.copies) b.status = (!call && rec.online) ? 'online' : applyPlaceStatus(b, C.statusFromAvailability(rec.availability));
+  return b;
+}
+async function refreshCopies(b) {
+  if (!b || !b.mms || !S.settings.liveUrl) return false;
+  try {
+    const d = await liveGet({ action: 'items', mms: b.mms });
+    b.copies = d.items || [];
+    const sum = C.summarizeCopies(b.copies, D);
+    if (sum) {
+      const it = sum.best;
+      b.almaLoc = { libraryCode: it.libraryCode, libraryName: it.libraryName, locationCode: it.locationCode, locationName: it.locationName };
+      if (it.callNumber) b.call = C.cleanCall(it.callNumber);
+      b.statusText = it.statusText; b.dueDate = it.dueDate || null;
+      b.status = applyPlaceStatus(b, it.status);
+      b.checked = new Date().toISOString();
+    }
+    return true;
+  } catch (e) { toast('Live status unavailable: ' + e.message); return false; }
+}
+function copiesLine(b) {
+  if (!b.copies || !b.copies.length) return '';
+  const n = b.copies.length, on = b.copies.filter((c) => c.status === 'shelf').length;
+  const out = b.copies.filter((c) => c.status === 'out');
+  const due = out.map((c) => c.dueDate).filter(Boolean).sort()[0];
+  return `${n} cop${n > 1 ? 'ies' : 'y'} · ${on} on the shelf${out.length ? ` · ${out.length} checked out${due ? ` (due ${new Date(due).toLocaleDateString([], { month: 'short', day: 'numeric' })})` : ''}` : ''}`;
+}
+function scheduleLive(q) {
+  clearTimeout(liveTimer);
+  if (!S.settings.liveUrl || q.length < 3) { S.live = { q: '', loading: false, error: '', ids: [], total: 0 }; renderLive(); return; }
+  if (q === S.live.q && !S.live.error) return;
+  S.live.loading = true; S.live.q = q; renderLive();
+  liveTimer = setTimeout(async () => {
+    const seq = ++liveSeq;
+    try {
+      const d = await liveGet({ action: 'search', q, limit: 10 });
+      if (seq !== liveSeq) return;
+      S.live = { q, loading: false, error: '', ids: d.records.map((r) => upsertLive(r).id), total: d.total };
+    } catch (e) { if (seq === liveSeq) S.live = { q, loading: false, error: e.message, ids: [], total: 0 }; }
+    renderLive(); renderLib();
+  }, 600);
+}
+function renderLive() {
+  const el = $('liveResults'); if (!el) return;
+  if (!S.settings.liveUrl) { el.innerHTML = ''; return; }
+  const L = S.live;
+  if (!L.q) { el.innerHTML = ''; return; }
+  let h = `<div class="reshead" style="margin-top:14px"><h3>Colgate catalog</h3><span class="muted small">${L.loading ? '· searching…' : L.error ? '' : `· ${L.total} result${L.total !== 1 ? 's' : ''}${L.total > L.ids.length ? `, showing ${L.ids.length}` : ''}`}</span></div>`;
+  if (L.error) h += `<div class="card">Couldn’t reach the catalog: ${esc(L.error)}</div>`;
+  h += L.ids.map(bookById).filter(Boolean).map(bookCard).join('');
+  el.innerHTML = h;
+}
+
+// ---------------- FIND ----------------
+let searchTimer = null;
+const PIN = '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0119 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
+function stripeClass(b) { return b.status === 'shelf' ? '' : ['out', 'missing'].includes(b.status) ? 'out' : ['cart', 'transit'].includes(b.status) ? 'wait' : 'gray'; }
+function bookCard(b) {
+  const d = destFor(b);
+  return `<div class="bcard" data-id="${b.id}" role="button" tabindex="0" aria-label="${esc(b.title)}">
+    <div class="stripe ${stripeClass(b)}"></div>
+    <div class="body">
+      <div class="tt">${esc(b.title)}</div>
+      <div class="au">${esc(b.author || '')}${b.year ? ' · ' + esc(b.year) : ''}</div>
+      <div class="meta">${statusPill(b)}${b.call ? `<span class="callno">${esc(b.call)}</span>` : ''}</div>
+      <div class="where">${PIN}<span>${esc(locLine(b))}</span></div>
+      ${b.copies ? `<div class="au" style="margin-top:4px">${esc(copiesLine(b))}</div>` : (b.status === 'shelf' && !b.live && b.seen ? `<div class="au" style="margin-top:4px">Location confirmed ${ago(b.seen)}</div>` : '')}
+      <div class="acts">
+        ${d.node ? `<button class="btn" data-go="${b.id}">Get directions</button>` : `<button class="btn sec" data-go="${b.id}">Details</button>`}
+        ${b.status !== 'online' ? `<button class="btn ${inCart(b.id) ? 'outline' : 'sec'}" data-cart="${b.id}">${inCart(b.id) ? '✓ In your cart' : '＋ Add to cart'}</button>` : ''}
+      </div>
+    </div></div>`;
+}
+const TILE_ICONS = {
+  restroom: '<circle cx="7" cy="4.5" r="1.8"/><path d="M5 21v-6H3.5L5.5 8h3l2 7H9v6"/><circle cx="17" cy="4.5" r="1.8"/><path d="M15 21v-7h-1.5V9.5A1.5 1.5 0 0115 8h4a1.5 1.5 0 011.5 1.5V14H19v7"/>',
+  help: '<path d="M21 12a8.5 8.5 0 01-12.3 7.6L3.5 21l1.4-4.7A8.5 8.5 0 1121 12z"/><path d="M9.8 9.6a2.3 2.3 0 114.1 1.4c-.7.8-1.9 1.2-1.9 2.4"/><path d="M12 16.4v.1"/>',
+  study: '<path d="M2.5 5.5C5.5 4.5 8.5 4.6 12 6.5c3.5-1.9 6.5-2 9.5-1v13c-3-1-6-.9-9.5 1-3.5-1.9-6.5-2-9.5-1z"/><path d="M12 6.5v13"/>',
+  food: '<path d="M4 9h12v4a6 6 0 01-6 6 6 6 0 01-6-6z"/><path d="M16 10h1.5a2.5 2.5 0 010 5H16"/><path d="M8 3v3M12 3v3"/>',
+  tech: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+  special: '<path d="M3 20h18M5 20v-9M9.5 20v-9M14.5 20v-9M19 20v-9M2.5 11L12 4.5l9.5 6.5"/>'
+};
+function renderFloorDir() {
+  const floors = Object.keys(D.floors).sort((a, b) => D.floors[b].order - D.floors[a].order);
+  $('floorDir').innerHTML = floors.map((f) => {
+    const blocks = D.blocks.filter((b) => b.floor === f);
+    const seen = new Set();
+    const chips = blocks.filter((b) => !seen.has(b.node) && seen.add(b.node)).map((b) => `<button class="rchip ${b.from ? '' : 'word'}" data-block="${b.id}">${esc((b.label || b.id).replace(/-/g, '–'))}</button>`).join('');
+    return `<div class="floorrow"><div class="lv"><small>LEVEL</small>${FLOOR(f).order}</div><div><p>${esc(FLOOR(f).about)}</p>${chips}</div></div>`;
+  }).join('');
+}
+function renderFind() {
+  const q = $('q').value.trim(); const ql = q.toLowerCase();
+  const searching = q.length > 0;
+  $('findHome').classList.toggle('hidden', searching);
+  $('findResults').classList.toggle('hidden', !searching);
+  $('qClear').classList.toggle('hidden', !searching);
+  document.querySelector('.hero').classList.toggle('compact', searching);
+  const list = searching ? S.books.filter((b) => !b.live && (b.title + ' ' + b.author + ' ' + b.call).toLowerCase().includes(ql)) : [];
+  let card = '';
+  const p = C.parseCall(q);
+  if (q && p && (/^[A-Z]{1,3}\s?\d/i.test(q) || /^REF\b/i.test(q))) {
+    const L = C.lookup(q, D);
+    if (L.ok) card = `<div class="callout"><div class="grow"><div class="muted small" style="font-weight:700;letter-spacing:.5px;text-transform:uppercase">Call number</div><div class="big">${esc(q.toUpperCase())}</div>
+      <div class="where">${PIN}<span><b>${FLOOR(L.block.floor).name}</b> · ${esc(blockName(L.block))}</span></div>` +
+      (L.also.length ? `<div class="muted small" style="margin-top:4px">Near the end of a range. If it isn’t there, try ${L.also.map((x) => esc(blockName(x))).join(' or ')}.</div>` : '') +
+      `</div><button class="btn" data-callroute="${esc(q)}">Get directions</button></div>`;
+    else card = `<div class="callout"><div><div class="big" style="font-size:16px">${esc(q.toUpperCase())}</div><div class="muted" style="margin-top:4px">${esc(L.msg)}</div></div></div>`;
+  }
+  $('callCard').innerHTML = card;
+  $('resHead').innerHTML = searching && (list.length || !S.settings.liveUrl) ? `<div class="reshead"><h3>Books</h3><span class="muted small">${list.length} match${list.length !== 1 ? 'es' : ''} for “${esc(q)}”</span></div>` : '';
+  $('results').innerHTML = list.map(bookCard).join('') ||
+    (searching && !card && !S.settings.liveUrl ? `<div class="empty">No books in ShelfFinder match “${esc(q)}”.<br>Try a call number like <b>PR4034</b>, or ask a librarian to connect the live Colgate catalog.</div>` : '');
+  renderPlaces();
+  if (!searching) renderFloorDir();
+  scheduleLive(q);
+  renderLive();
+  clearTimeout(searchTimer);
+  if (ql.length >= 3) searchTimer = setTimeout(() => { S.searches[ql] = (S.searches[ql] || 0) + 1; }, 1500);
+}
+$('q').addEventListener('input', () => { placeCat = null; renderFind(); });
+function cardClick(e) {
+  const c = e.target.closest('[data-cart]'); if (c) { e.stopPropagation(); toggleCart(+c.dataset.cart); return; }
+  const el = e.target.closest('[data-go]') || e.target.closest('.bcard'); if (el) selectBook(+(el.dataset.go || el.dataset.id));
+}
+$('liveResults').addEventListener('click', cardClick);
+$('results').addEventListener('click', cardClick);
+$('results').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.classList.contains('bcard')) selectBook(+e.target.dataset.id); });
+$('liveResults').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.classList.contains('bcard')) selectBook(+e.target.dataset.id); });
+document.querySelector('.tries').addEventListener('click', (e) => { const t = e.target.closest('[data-try]'); if (!t) return; $('q').value = t.dataset.try; placeCat = null; renderFind(); });
+$('qClear').addEventListener('click', () => { $('q').value = ''; placeCat = null; renderFind(); $('q').focus(); });
+$('floorDir').addEventListener('click', (e) => {
+  const c = e.target.closest('[data-block]'); if (!c) return;
+  const b = blockById(c.dataset.block); if (!b) return;
+  S.mode = 'single'; S.sel = { kind: 'call', call: (b.label || b.id).replace(/-/g, '–') + (b.from ? ' stacks' : ''), block: b }; computeRoute(); setTab('nav');
+});
+$('findHome').addEventListener('click', (e) => {
+  const g = e.target.closest('[data-goto]'); if (g) { setTab(g.dataset.goto); return; }
+  const pl = e.target.closest('button[data-place]'); if (pl) selectPlace(pl.dataset.place);
+});
+$('homeScan').addEventListener('click', () => openScanner('Scan the ShelfFinder code near you', 'node', (m) => { S.start = m.id; toast('Starting from ' + m.name + '. Now search for what you need.'); renderAll(); }));
+$('callCard').addEventListener('click', (e) => {
+  const c = e.target.dataset.callroute; if (!c) return;
+  const L = C.lookup(c, D); if (!L.ok) return;
+  S.mode = 'single'; S.sel = { kind: 'call', call: c.toUpperCase(), block: L.block };
+  computeRoute(); setTab('nav');
+});
+function selectBook(id) {
+  S.mode = 'single'; S.sel = { kind: 'book', id };
+  S.shelfFace = null; S.facingRange = null; S.shelfBookId = id;
+  computeRoute(); setTab('nav');
+  const b = bookById(id);
+  if (b && b.mms && S.settings.liveUrl) { S.checking = id; renderNav(); refreshCopies(b).then(() => { S.checking = null; if (S.sel && S.sel.id === id) computeRoute(true); else renderAll(); }); }
+}
+
+// ---------------- PLACES ----------------
+let placeCat = null;
+function renderPlaces() {
+  const T = D.placeTypes || {};
+  $('placeChips').innerHTML = Object.entries(T).map(([k, t]) => {
+    const n = C.placesOf(G, k).length;
+    return `<button class="tile ${placeCat === k ? 'on' : ''}" data-pcat="${k}"><div class="ic"><svg viewBox="0 0 24 24">${TILE_ICONS[k] || TILE_ICONS.study}</svg></div><b>${esc(t.name)}</b><span>${t.nearest ? 'Take me to the nearest' : `${n} place${n !== 1 ? 's' : ''}`}</span></button>`;
+  }).join('');
+  const q = $('q').value.trim().toLowerCase();
+  const row = (n) => `<div class="item" data-place="${n.id}"><div class="ic" style="width:36px;height:36px;border-radius:9px;background:#f6e9ea;display:flex;align-items:center;justify-content:center;flex:none"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--maroon);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round">${TILE_ICONS[n.cat] || ''}</svg></div><div class="grow"><div class="t">${esc(n.label)}</div><div class="a">${FLOOR(n.floor).name} · ${esc((T[n.cat] || {}).name || '')}</div></div><span class="btn sec sm">Directions</span></div>`;
+  const byFloor = (a, b) => FLOOR(b.floor).order - FLOOR(a.floor).order;
+  const catList = placeCat ? C.placesOf(G, placeCat).sort(byFloor) : [];
+  $('placeList').innerHTML = catList.length ? `<div class="panel"><div class="row"><h3 class="sec-h grow" style="margin:0">${esc(T[placeCat].name)}</h3><button class="btn sec sm" data-pclose>Close</button></div><div class="list">${catList.map(row).join('')}</div></div>` : '';
+  const qList = q.length >= 3 ? C.placesOf(G).filter((n) => n.label.toLowerCase().includes(q) || ((T[n.cat] || {}).name || '').toLowerCase().includes(q)).sort(byFloor) : [];
+  $('resPlaces').innerHTML = qList.length ? `<div class="reshead"><h3>Places</h3><span class="muted small">${qList.length}</span></div><div class="list" style="margin-bottom:14px">${qList.map(row).join('')}</div>` : '';
+}
+function selectPlace(id) { S.mode = 'single'; S.sel = { kind: 'place', node: id }; computeRoute(); setTab('nav'); }
+$('placeChips').addEventListener('click', (e) => {
+  const c = e.target.closest('[data-pcat]'); if (!c) return;
+  const k = c.dataset.pcat, t = D.placeTypes[k];
+  if (t.nearest) { const r = C.nearest(G, S.start, C.placesOf(G, k), { avoidStairs: S.avoidStairs }); if (r) { toast(`Nearest: ${r.node.label}`); selectPlace(r.node.id); } return; }
+  placeCat = placeCat === k ? null : k; renderPlaces();
+});
+$('placeList').addEventListener('click', (e) => { if (e.target.closest('[data-pclose]')) { placeCat = null; renderPlaces(); return; } const it = e.target.closest('[data-place]'); if (it) selectPlace(it.dataset.place); });
+$('resPlaces').addEventListener('click', (e) => { const it = e.target.closest('[data-place]'); if (it) selectPlace(it.dataset.place); });
+
+// ---------------- CART TAB ----------------
+function startOptions() {
+  return [['Entrances', D.entrances.map((e) => [e, nodeName(e)])], ['Stairs & elevators', MARKERS.filter((m) => m.kind === 'node' && !D.entrances.includes(m.id)).map((m) => [m.id, m.name])]]
+    .map(([g, arr]) => `<optgroup label="${g}">${arr.map(([v, t]) => `<option value="${v}" ${v === S.start ? 'selected' : ''}>${esc(t)}</option>`).join('')}</optgroup>`).join('');
+}
+function cartCard(b, reason) {
+  return `<div class="bcard mini" style="cursor:default">
+    <div class="stripe ${stripeClass(b)}"></div>
+    <div class="body">
+      <div class="tt">${esc(b.title)}</div>
+      ${b.author ? `<div class="au">${esc(b.author)}</div>` : ''}
+      <div class="meta">${statusPill(b)}${b.call ? `<span class="callno">${esc(b.call)}</span>` : ''}</div>
+      <div class="where">${PIN}<span>${esc(locLine(b))}</span></div>
+      ${reason ? `<div class="skip">${ic('alert')}<span>Not included in the route: ${esc(reason)}${catalogLink(b) ? ` · <a href="${esc(catalogLink(b))}" target="_blank" rel="noopener">catalog / hold</a>` : ''}</span></div>` : ''}
+    </div>
+    <button class="x" data-rm="${b.id}" aria-label="Remove ${esc(b.title)} from cart">${ic('x')}</button></div>`;
+}
+function renderCart() {
+  const n = S.cart.length;
+  $('cartBadge').textContent = n; $('cartBadge').classList.toggle('hidden', !n);
+  $('cartCount').textContent = n ? `${n} book${n !== 1 ? 's' : ''}` : '';
+  $('cartClear').classList.toggle('hidden', !n);
+  const { unavailable } = cartGroups();
+  const bad = new Map(unavailable.map((u) => [u.b.id, u.reason]));
+  $('cartList').innerHTML = n ? S.cart.map(bookById).filter(Boolean).map((b) => cartCard(b, bad.get(b.id))).join('')
+    : `<div class="empty">Your cart is empty.<br>Search on Find and tap <b>Add to cart</b> on any book.<div style="margin-top:12px"><button class="btn outline" data-goto="find">Find books</button></div></div>`;
+  $('cartStart').innerHTML = startOptions();
+  $('cartEnd').value = S.tripEnd; $('cartAvoid').checked = S.avoidStairs;
+  $('cartPlan').disabled = !n;
+  // plan summary
+  let out = '';
+  if (S.mode === 'trip' && S.trip) {
+    const fin = S.tripEnd === 'circ' ? ['Circulation Desk · Level 3', 'Check out your books'] : S.tripEnd === 'start' ? ['Back where you started', ''] : null;
+    out = `<div class="trip"><div class="sum"><div><b>${S.stops.length}</b><span>stop${S.stops.length !== 1 ? 's' : ''}</span></div><div><b>~${walkMeters()} m</b><span>walking</span></div><div><b style="font-size:15px;padding-top:6px">${S.trip.floors.map((f) => FLOOR(f).name.replace('Level ', 'L')).join(' → ')}</b><span>floors</span></div></div><ol>` +
+      S.stops.map((st) => `<li><span class="n">${st.n}</span><div><b>${esc(nodeName(st.node))}</b><div class="muted">${st.books.map((b) => esc(b.title)).join(', ')}</div></div></li>`).join('') +
+      (fin ? `<li class="fin"><span class="n">${ic('check')}</span><div><b>${fin[0]}</b>${fin[1] ? `<div class="muted">${fin[1]}</div>` : ''}</div></li>` : '') + '</ol>' +
+      `<div class="acts"><button class="btn" id="cartGoRoute">See route →</button><button class="btn outline" id="cartGoAR">Start AR guide</button></div></div>`;
+  }
+  $('cartPlanOut').innerHTML = out;
+  const gr = $('cartGoRoute'); if (gr) gr.onclick = () => setTab('nav');
+  const ga = $('cartGoAR'); if (ga) ga.onclick = () => setTab('ar');
+}
+$('cartList').addEventListener('click', (e) => { const g = e.target.closest('[data-goto]'); if (g) { setTab(g.dataset.goto); return; } const r = e.target.closest('[data-rm]'); if (r) toggleCart(+r.dataset.rm); });
+$('cartClear').addEventListener('click', () => { S.cart = []; if (S.mode === 'trip') { S.mode = 'single'; S.trip = null; computeRoute(); } else renderAll(); });
+$('cartStart').addEventListener('change', (e) => { S.start = e.target.value; if (S.mode === 'trip') computeRoute(); });
+$('cartEnd').addEventListener('change', (e) => { S.tripEnd = e.target.value; if (S.mode === 'trip') computeRoute(); });
+$('cartAvoid').addEventListener('change', (e) => { S.avoidStairs = e.target.checked; if (S.mode === 'trip') computeRoute(); });
+$('cartPlan').addEventListener('click', async () => {
+  const live = S.cart.map(bookById).filter((b) => b && b.mms);
+  if (live.length && S.settings.liveUrl) { $('cartPlan').disabled = true; $('cartPlan').textContent = 'Checking live status…'; await Promise.all(live.map(refreshCopies)); $('cartPlan').disabled = false; $('cartPlan').textContent = 'Plan quickest route →'; }
+  S.mode = 'trip'; computeRoute(); if (S.trip) toast(`Best order found for ${S.cart.length} books`);
+});
+
+// ---------------- READING LISTS ----------------
+const appBase = () => location.href.split(/[?#]/)[0];
+$('listMake').addEventListener('click', async () => {
+  if (!S.cart.length) { toast('Add books to the cart first'); return; }
+  const title = $('listTitle').value.trim() || 'Reading list';
+  const url = appBase() + '?' + C.encodeList(title, S.cart.map(bookById).filter(Boolean).map((b) => b.call));
+  S.listTitle = title;
+  $('listOut').innerHTML = `<label class="f">Link (${S.cart.length} books)</label><div class="row"><input id="listUrl" class="grow" readonly value="${esc(url)}"><button class="btn sec" id="listCopy">${ic('copy')}Copy</button></div><div class="qrbox" id="listQr"><span class="muted small">Making QR code…</span></div>`;
+  $('listCopy').onclick = () => { const i = $('listUrl'); i.select(); (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => toast('Link copied'), () => { document.execCommand('copy'); toast('Link copied'); }); };
+  try { if (!window.QRCode) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'); $('listQr').innerHTML = ''; new QRCode($('listQr'), { text: url, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.L }); }
+  catch (e) { $('listQr').innerHTML = '<span class="muted small">QR code needs an internet connection — share the link instead.</span>'; }
+  addLog(`Reading list “${title}” shared (${S.cart.length} books)`);
+});
+function loadReadingList(search) {
+  const L = C.decodeList(search); if (!L) return false;
+  let next = Math.max(0, ...S.books.map((x) => x.id)) + 1, unknown = 0;
+  S.cart = L.calls.map((call) => {
+    let b = S.books.find((x) => C.normCall(x.call) === C.normCall(call));
+    if (!b) { b = { id: next++, title: call.toUpperCase(), author: 'From reading list (not in catalog yet)', call: call.toUpperCase(), status: 'shelf', reports: [], seen: null }; S.books.push(b); unknown++; }
+    return b.id;
+  });
+  S.listTitle = L.title; S.mode = 'trip';
+  $('listBanner').innerHTML = `<div class="helpbox" style="display:flex;gap:12px;align-items:center"><span class="ic">${ic('list')}</span><div><h4>${esc(L.title || 'Reading list')}</h4><p style="margin:0">${S.cart.length} books loaded${unknown ? ` (${unknown} located by call number only)` : ''}. Your quickest route is already planned.</p></div></div>`;
+  return true;
+}
+
+// ---------------- ROUTE (single book or cart trip) ----------------
+function destination() {
+  if (!S.sel) return null;
+  if (S.sel.kind === 'place') { const n = G[S.sel.node]; return n ? { node: n.id, label: n.label, title: n.label, place: n } : null; }
+  if (S.sel.kind === 'call') return { node: S.sel.block.floor + ':' + S.sel.block.node, label: blockName(S.sel.block), block: S.sel.block, title: S.sel.call };
+  const b = bookById(S.sel.id); if (!b) return null;
+  return Object.assign({ title: b.title, book: b }, destFor(b));
+}
+function walkMeters() { return Math.round(S.steps.filter((s) => s.type === 'walk').reduce((a, s) => a + s.dist, 0)); }
+function exactLine(b) {
+  const w = whereIs(b);
+  return w.exact ? `${w.range.name.split(' · ')[0]}: face ${w.exact.face}, section ${w.exact.section}, shelf ${w.exact.shelf} from top, ~${w.exact.pos} cm from left` : `follow the range-end signs to ${b.call}`;
+}
+function computeRoute(keepStep) {
+  const keep = keepStep ? S.arStep : 0;
+  S.route = null; S.steps = []; S.stops = []; S.trip = null;
+  if (S.mode === 'trip') computeTrip(); else computeSingle();
+  S.arStep = Math.min(keep, Math.max(0, S.steps.length - 1));
+  if (S.route && !keepStep) S.mapFloor = G[S.start].floor;
+  renderAll();
+}
+function computeSingle() {
+  const d = destination();
+  if (!d || !d.node) return;
+  const r = C.route(G, S.start, d.node, { avoidStairs: S.avoidStairs });
+  if (!r) return;
+  S.route = r;
+  S.steps = C.buildSteps(G, D, r.path, S.settings.mpp, d.label);
+  const last = S.steps[S.steps.length - 1];
+  if (d.book) { last.books = [d.book]; last.sub = d.exact ? `Find ${exactLine(d.book)}. Call number ${d.book.call}.` : `Follow the call-number signs on the range ends to ${d.book.call}.`; }
+  else last.sub = `Follow the call-number signs on the range ends to ${d.title}.`;
+}
+function computeTrip() {
+  const { groups } = cartGroups();
+  const nodes = Object.keys(groups);
+  if (!nodes.length) return;
+  const end = S.tripEnd === 'circ' ? 'L3:circ' : S.tripEnd === 'start' ? S.start : null;
+  const t = C.planTrip(G, S.start, nodes, end, { avoidStairs: S.avoidStairs });
+  if (!t) { toast('No route found'); return; }
+  const full = [];
+  t.legs.forEach((leg) => full.push(...(full.length ? leg.slice(1) : leg)));
+  S.route = { path: full, cost: t.cost };
+  t.legs.forEach((leg, k) => {
+    const isStop = k < t.order.length;
+    const g = isStop ? groups[t.order[k]] : null;
+    const label = isStop ? g.label : (S.tripEnd === 'circ' ? 'the Circulation Desk' : 'your starting point');
+    const st = leg.length > 1 ? C.buildSteps(G, D, leg, S.settings.mpp, label) : [{ type: 'arrive', floor: G[leg[0]].floor, node: leg[0] }];
+    const last = st[st.length - 1];
+    if (isStop) {
+      last.type = 'stop'; last.books = g.books;
+      last.text = `Stop ${k + 1} of ${t.order.length} · ${label}`;
+      last.sub = g.books.map((b) => `${b.title} (${b.call}) — ${exactLine(b)}`).join(' · ');
+    } else { last.text = S.tripEnd === 'circ' ? 'Finish at the Circulation Desk — check out your books' : 'Back at your starting point'; last.sub = ''; }
+    S.steps.push(...st);
+  });
+  S.stops = t.order.map((node, k) => ({ node, n: k + 1, books: groups[node].books }));
+  S.trip = { cost: t.cost, floors: [...new Set(full.map((p) => G[p].floor))].filter((f, i, a) => full.filter((p) => G[p].floor === f).length > 1 || i === a.length - 1) };
+}
+
+function renderNav() {
+  let h = '';
+  if (S.mode === 'trip') {
+    const { unavailable } = cartGroups();
+    h = `<div class="phead"><div class="eyebrow">Cart trip · ${S.cart.length} book${S.cart.length !== 1 ? 's' : ''}</div><h2>${S.stops.length} stop${S.stops.length !== 1 ? 's' : ''}${S.route ? `, about ${walkMeters()} m` : ''}</h2><p>In the quickest order${S.tripEnd === 'circ' ? ', finishing at the Circulation Desk' : ''}.</p>` +
+      (S.sel ? `<div class="acts"><button class="hbtn" id="backSingle">${ic('left')}Back to single book</button></div>` : '') + '</div>' +
+      (unavailable.length ? `<div class="notes"><div class="card warn">Not on an open shelf (skipped): ${unavailable.map((u) => `<b>${esc(u.b.title)}</b> — ${esc(u.reason)}`).join('; ')}</div></div>` : '');
+  } else {
+    const d = destination();
+    if (!d) h = `<div class="phead"><div class="eyebrow">Directions</div><h2>Where to?</h2><p>Search for a book or a place on the Find tab, or plan a trip from your cart.</p><div class="acts"><button class="hbtn solid" data-goto="find">Find a book</button><button class="hbtn" data-goto="cart">${ic('cart')}Open my cart</button></div></div>`;
+    else {
+      const b = d.book, notes = [];
+      if (d.place) h = `<div class="phead"><div class="eyebrow">${esc(((D.placeTypes || {})[d.place.cat] || {}).name || 'Place')}</div><h2>${esc(d.title)}</h2><div class="where">${PIN}<span>${FLOOR(d.place.floor).name}</span></div></div>`;
+      else {
+        h = `<div class="phead"><div class="eyebrow">Directions</div><h2>${esc(d.title)}</h2>`;
+        if (b) {
+          h += (b.author ? `<p>${esc(b.author)}${b.year ? ' · ' + esc(b.year) : ''}</p>` : '') +
+            `<div class="meta">${statusPill(b)}${b.call ? `<code>${esc(b.call)}</code>` : ''}</div>` +
+            `<div class="where">${PIN}<span>${esc(locLine(b))}</span></div>` +
+            (b.status === 'shelf' && !b.live ? `<div class="meta" style="opacity:.85">${ic('check')}Location last confirmed ${ago(b.seen)}</div>` : '') +
+            (S.checking === b.id ? `<div class="meta" style="opacity:.85">${ic('clock')}Checking live status in the Colgate catalog…</div>` : b.copies ? `<div class="meta">${ic('live')}Live: ${esc(copiesLine(b))} · checked ${ago(b.checked)}</div>` : '') +
+            `<div class="acts"><button class="hbtn ${inCart(b.id) ? 'on' : ''}" data-cart="${b.id}">${ic(inCart(b.id) ? 'check' : 'plus')}${inCart(b.id) ? 'In cart' : 'Add to cart'}</button>` +
+            (b.status === 'shelf' ? `<button class="hbtn" data-nothere="${b.id}">${ic('flag')}Not here?</button>` : '') +
+            (catalogLink(b) ? `<a class="hbtn" href="${esc(catalogLink(b))}" target="_blank" rel="noopener">Catalog / hold ↗</a>` : '') + '</div>';
+        } else if (d.block) h += `<div class="where">${PIN}<span>${FLOOR(d.block.floor).name} · ${esc(blockName(d.block))}</span></div>`;
+        h += '</div>';
+      }
+      if (b && b.status === 'out') notes.push(`<div class="card">This book is checked out${b.dueDate ? `, due back ${esc(new Date(b.dueDate).toLocaleDateString([], { month: 'long', day: 'numeric' }))}` : ''}. You can place a hold through the library catalog.</div>`);
+      if (b && ['transit', 'away', 'elsewhere', 'online'].includes(b.status)) notes.push(`<div class="card warn">${esc(locLine(b))}.</div>`);
+      if (b && b.status === 'lasr') notes.push('<div class="card warn">This book lives in LASR, the library’s automated storage system — it isn’t on an open shelf. Request it through the catalog and pick it up at the Circulation Desk (Level 3).</div>');
+      if (b && b.status === 'missing') notes.push('<div class="card">Library staff have marked this book missing and are looking for it.</div>');
+      if (b && b.status === 'shelf' && !d.node) notes.push(`<div class="card warn">${esc(d.reason)}</div>`);
+      if (d.note) notes.push(`<div class="card">${esc(d.note)}</div>`);
+      if (notes.length) h += `<div class="notes">${notes.join('')}</div>`;
+    }
+  }
+  $('destCard').innerHTML = h;
+  const bs = $('backSingle'); if (bs) bs.onclick = () => { S.mode = 'single'; computeRoute(); };
+  $('goAR').disabled = !S.route;
+  $('startSel').innerHTML = startOptions();
+  $('avoidStairs').checked = S.avoidStairs;
+  const floors = S.route ? [...new Set(S.route.path.map((p) => G[p].floor))].filter((f) => S.route.path.filter((p) => G[p].floor === f).length > 1 || G[S.route.path[S.route.path.length - 1]].floor === f) : [G[S.start].floor];
+  if (!floors.includes(S.mapFloor)) S.mapFloor = floors[0];
+  $('floorTabs').innerHTML = floors.map((f) => `<button class="ftab ${f === S.mapFloor ? 'on' : ''}" data-f="${f}">${FLOOR(f).name}</button>`).join('');
+  $('routeSummary').textContent = S.route ? `~${walkMeters()} m walking · ${floors.length > 1 ? floors.map((f) => FLOOR(f).name.replace('Level ', 'L')).join(' → ') : 'same floor'}` : '';
+  drawMap($('map'), S.mapFloor, mapOpts());
+  $('steps').innerHTML = S.steps.map((s, i) => `<li class="${s.type} ${i === S.arStep ? 'cur' : ''}" data-i="${i}"><span class="n">${s.type === 'stop' ? '★' : i + 1}</span><div><div>${esc(s.text)}${s.dist ? ` <span class="muted">· ~${s.dist} m</span>` : ''}</div>${s.sub ? `<div class="muted small">${esc(s.sub)}</div>` : ''}</div></li>`).join('') || '<li class="muted">No route.</li>';
+}
+function mapOpts(extra) {
+  const o = { route: S.route, rects: [], lines: [], stops: [] };
+  if (S.mode === 'trip') S.stops.forEach((s) => { const b = s.books[0]; const w = whereIs(b); if (w.block && b.status === 'shelf') o.rects.push(w.block); if (w.range) o.lines.push(w.range.line && Object.assign({ floor: w.block.floor }, { line: w.range.line })); o.stops.push(s); });
+  else { const d = destination(); if (d && d.block) o.rects.push(d.block); if (d && d.range) o.lines.push({ floor: d.block.floor, line: d.range.line }); }
+  return Object.assign(o, extra || {});
+}
+$('destCard').addEventListener('click', (e) => {
+  const g = e.target.closest('[data-goto]'); if (g) { setTab(g.dataset.goto); return; }
+  const c = e.target.closest('[data-cart]'); if (c) { toggleCart(+c.dataset.cart); return; }
+  const n = e.target.closest('[data-nothere]'); if (n) reportNotHere(+n.dataset.nothere);
+});
+$('startSel').addEventListener('change', (e) => { S.start = e.target.value; computeRoute(); });
+$('avoidStairs').addEventListener('change', (e) => { S.avoidStairs = e.target.checked; computeRoute(); });
+$('floorTabs').addEventListener('click', (e) => { if (e.target.dataset.f) { S.mapFloor = e.target.dataset.f; renderNav(); } });
+$('steps').addEventListener('click', (e) => { const li = e.target.closest('li[data-i]'); if (!li) return; S.arStep = +li.dataset.i; S.mapFloor = S.steps[S.arStep].floor; renderNav(); });
+$('goAR').addEventListener('click', () => setTab('ar'));
+$('scanStart').addEventListener('click', () => openScanner('Scan a ShelfFinder marker', 'node', (m) => { S.start = m.id; computeRoute(); toast('Starting from ' + m.name); }));
+
+// Map drawing
+function drawMap(svg, floor, o) {
+  o = o || {};
+  const M = MAPS[floor]; const [x0, y0, w, h] = M ? M.box : [0, 0, 1000, 700];
+  svg.setAttribute('viewBox', o.viewBox || `${x0} ${y0} ${w} ${h}`);
+  let s = M ? `<image href="${M.src}" x="${x0}" y="${y0}" width="${w}" height="${h}"/>` : `<rect x="0" y="0" width="1000" height="700" fill="#fff"/>`;
+  for (const hz of o.heat || []) if (hz.floor === floor) { const [rx, ry, rw, rh] = hz.rect; s += `<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="4" fill="rgba(225,0,40,${Math.min(0.75, 0.15 + hz.n * 0.18)})" stroke="#821019" stroke-width="2"/><text x="${rx + rw / 2}" y="${ry + rh / 2 + 7}" text-anchor="middle" font-size="22" font-weight="800" fill="#fff" stroke="#2b2622" stroke-width="3" paint-order="stroke">${hz.n}</text>`; }
+  const seen = new Set();
+  for (const b of o.rects || []) { if (b.floor !== floor || seen.has(b.id)) continue; seen.add(b.id); const [rx, ry, rw, rh] = b.rect; s += `<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="#E100281a" stroke="#E10028" stroke-width="3" rx="4"/>`; }
+  for (const l of o.lines || []) { if (!l || l.floor !== floor) continue; const [a, b, c2, e] = l.line; s += `<line x1="${a}" y1="${b}" x2="${c2}" y2="${e}" stroke="#F0AA00" stroke-width="8" stroke-linecap="round"/><line x1="${a}" y1="${b}" x2="${c2}" y2="${e}" stroke="#821019" stroke-width="3" stroke-linecap="round"/>`; }
+  if (o.route) {
+    const segs = []; let cur = [];
+    for (const id of o.route.path) { const n = G[id]; if (n.floor === floor) cur.push(n); else if (cur.length) { segs.push(cur); cur = []; } }
+    if (cur.length) segs.push(cur);
+    for (const seg of segs) if (seg.length > 1) s += `<polyline class="route ${o.dim ? 'dim' : ''}" points="${seg.map((n) => n.x + ',' + n.y).join(' ')}"/>`;
+    if (o.highlight) s += `<polyline class="route" style="stroke:#411217;stroke-width:9" points="${o.highlight.map((p) => p.join(',')).join(' ')}"/>`;
+    const st = G[o.route.path[0]], en = G[o.route.path[o.route.path.length - 1]];
+    for (let i = 0; i < o.route.path.length - 1; i++) {
+      const a = G[o.route.path[i]], b = G[o.route.path[i + 1]];
+      if (a.floor !== b.floor && a.floor === floor) s += `<circle cx="${a.x}" cy="${a.y}" r="15" fill="#411217"/><text x="${a.x}" y="${a.y + 6}" text-anchor="middle" font-size="17" fill="#fff" font-weight="800">${FLOOR(b.floor).order > FLOOR(a.floor).order ? '▲' : '▼'}${FLOOR(b.floor).order}</text>`;
+    }
+    if (st.floor === floor) s += `<circle cx="${st.x}" cy="${st.y}" r="11" fill="#411217" stroke="#fff" stroke-width="3"/><text x="${st.x}" y="${st.y - 18}" text-anchor="middle" font-size="16" font-weight="700" fill="#411217" stroke="#fff" stroke-width="4" paint-order="stroke">Start</text>`;
+    if (o.stops && o.stops.length) {
+      for (const sp of o.stops) { const n = G[sp.node]; if (n.floor !== floor) continue; s += `<circle class="pulse" cx="${n.x}" cy="${n.y}" r="8" fill="none" stroke="#E10028" stroke-width="3"/><circle cx="${n.x}" cy="${n.y}" r="14" fill="#E10028" stroke="#fff" stroke-width="3"/><text x="${n.x}" y="${n.y + 6}" text-anchor="middle" font-size="16" font-weight="800" fill="#fff">${sp.n}</text>`; }
+      if (en.floor === floor && !o.stops.some((sp) => sp.node === en.id)) s += `<circle cx="${en.x}" cy="${en.y}" r="12" fill="#411217" stroke="#fff" stroke-width="3"/><text x="${en.x}" y="${en.y - 18}" text-anchor="middle" font-size="16" font-weight="700" fill="#411217" stroke="#fff" stroke-width="4" paint-order="stroke">Finish</text>`;
+    } else if (en.floor === floor) s += `<circle class="pulse" cx="${en.x}" cy="${en.y}" r="8" fill="none" stroke="#E10028" stroke-width="3"/><circle cx="${en.x}" cy="${en.y}" r="11" fill="#E10028" stroke="#fff" stroke-width="3"/>`;
+  }
+  if (o.you) s += `<circle cx="${o.you[0]}" cy="${o.you[1]}" r="12" fill="#411217" stroke="#fff" stroke-width="4"/>`;
+  svg.innerHTML = s;
+}
+
+// ---------------- AR GUIDE ----------------
+const ARROW = `<svg viewBox="0 0 100 100" class="arrow3d" id="arrowSvg"><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#f0a020"/></linearGradient></defs><path d="M50 6 L88 52 L64 52 L64 94 L36 94 L36 52 L12 52 Z" fill="url(#ag)" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg>`;
+function stepSpeech(s) {
+  if (s.type === 'walk') return `${s.text}. About ${s.dist} metres.`;
+  if (s.type === 'floor') return `${s.text}.`;
+  return `${s.text}. ${s.sub || ''}`;
+}
+function speak(t) { try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.rate = 1; speechSynthesis.speak(u); } catch (e) {} }
+function renderAR() {
+  const title = S.mode === 'trip' ? `Cart trip · ${S.cart.length} books` : (destination() ? destination().title : '');
+  $('arTitle').textContent = title || 'AR guide';
+  const st = $('arStage'); st.classList.toggle('cam', S.cam); st.classList.toggle('sim', !S.cam);
+  const g = $('guide');
+  if (!S.route || !S.steps.length) {
+    g.innerHTML = `<div class="bigic">${ic('compass')}</div><div class="instr">Pick a book first</div><div class="dist">Find a book, or plan a Cart trip, then come back here.</div>`;
+    $('arFloor').textContent = '—'; $('arProg').textContent = ''; $('inset').innerHTML = ''; $('floorPath').innerHTML = '';
+    $('arPrev').disabled = $('arNext').disabled = true; return;
+  }
+  S.arStep = Math.max(0, Math.min(S.arStep, S.steps.length - 1));
+  const s = S.steps[S.arStep];
+  $('arFloor').textContent = FLOOR(s.floor).name;
+  $('arProg').textContent = `Step ${S.arStep + 1} of ${S.steps.length}`;
+  $('arPrev').disabled = S.arStep === 0;
+  $('arNext').disabled = false;
+  $('arNext').innerHTML = S.arStep === S.steps.length - 1 ? `Done${ic('check')}` : `Next${ic('right')}`;
+  let rot = 0, top = ARROW, extra = '';
+  if (s.type === 'walk') {
+    rot = S.heading != null ? s.bearing + S.settings.north - S.heading : s.turn;
+    extra = `<div class="dist">~${s.dist} m · about ${Math.max(1, Math.round(s.dist / 0.75))} steps${S.heading == null ? ' · relative to the way you’re walking' : ' · live compass'}</div>`;
+  } else if (s.type === 'floor') {
+    top = `<div class="bigic">${ic(s.up ? 'aup' : 'adown')}</div>`;
+    extra = `<div class="dist">${esc(s.sub)} Scan the landing marker when you arrive.</div>`;
+  } else {
+    top = `<div class="bigic">${ic(s.type === 'stop' ? 'book' : 'pin')}</div>`;
+    if (s.books && s.books.length) extra = '<div class="picks">' + s.books.map((b) => `<div class="row"><div><b>${esc(b.title)}</b> <code>${esc(b.call)}</code><div class="small" style="opacity:.85">${esc(exactLine(b))}</div></div><div class="row" style="gap:4px">${whereIs(b).exact ? `<button class="btn sm" data-shelf="${b.id}">${ic('book')}Shelf</button>` : ''}<button class="btn sec sm" data-nothere="${b.id}">Not here?</button></div></div>`).join('') + '</div>';
+    else if (s.sub) extra = `<div class="dist">${esc(s.sub)}</div>`;
+  }
+  g.innerHTML = top + `<div class="instr">${esc(s.text)}</div>` + extra;
+  const a = $('arrowSvg'); if (a) a.style.transform = `perspective(500px) rotateX(48deg) rotate(${rot}deg)`;
+  $('floorPath').innerHTML = s.type === 'walk'
+    ? `<path d="M40 50 L46 0 L54 0 L60 50 Z" fill="#ffd54a55" transform="rotate(${Math.max(-60, Math.min(60, rot))} 50 50)"/><path d="M48 50 L49.5 0 L50.5 0 L52 50 Z" fill="#ffd54acc" transform="rotate(${Math.max(-60, Math.min(60, rot))} 50 50)"/>` : '';
+  const pts = s.pts || [[G[s.node].x, G[s.node].y]];
+  const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+  const pad = 70, mx = Math.min(...xs) - pad, my = Math.min(...ys) - pad;
+  const vw = Math.max(Math.max(...xs) - mx + pad, 180), vh = Math.max(Math.max(...ys) - my + pad, 180), side = Math.max(vw, vh);
+  drawMap($('inset'), s.floor, mapOpts({ dim: true, highlight: s.pts, you: pts[0], viewBox: `${mx - (side - vw) / 2} ${my - (side - vh) / 2} ${side} ${side}` }));
+  $('arNote').textContent = S.cam ? '' : 'Tip: on your phone, turn on Camera, Compass and Voice. Open the app over HTTPS (e.g. GitHub Pages) so the browser allows them.';
+  const key = S.arStep + '|' + s.text;
+  if (S.voice && S.tab === 'ar' && S.spoken !== key) { S.spoken = key; speak(stepSpeech(s)); }
+}
+$('guide').addEventListener('click', (e) => {
+  const sh = e.target.closest('[data-shelf]'); if (sh) { S.shelfBookId = +sh.dataset.shelf; S.shelfFace = null; S.facingRange = null; setTab('shelf'); return; }
+  const n = e.target.closest('[data-nothere]'); if (n) reportNotHere(+n.dataset.nothere);
+});
+$('arPrev').addEventListener('click', () => { S.arStep--; renderAR(); });
+$('arNext').addEventListener('click', () => {
+  if (S.arStep < S.steps.length - 1) { S.arStep++; renderAR(); return; }
+  toast(S.mode === 'trip' ? 'Trip complete — enjoy your books!' : 'You’ve arrived — check the call-number signs.');
+  if (S.voice) speak('You have arrived.');
+});
+$('arScan').addEventListener('click', () => openScanner('Scan the nearest marker', 'any', (m) => {
+  if (m.kind === 'range') { S.facingRange = m.range; S.shelfFace = m.face; setTab('shelf'); return; }
+  S.start = m.id; computeRoute(); toast('Re-routed from ' + m.name);
+}));
+$('voiceBtn').addEventListener('click', () => {
+  if (!('speechSynthesis' in window)) { toast('Voice not supported in this browser'); return; }
+  S.voice = !S.voice; S.spoken = null; $('voiceBtn').innerHTML = `${ic(S.voice ? 'volon' : 'vol')}${S.voice ? 'Voice on' : 'Voice'}`; $('voiceBtn').classList.toggle('on', S.voice);
+  if (!S.voice) speechSynthesis.cancel(); renderAR();
+});
+
+// Camera (shared)
+async function toggleCam() {
+  if (S.cam) { S.stream && S.stream.getTracks().forEach((t) => t.stop()); S.cam = false; S.stream = null; syncVideos(); renderAll(); return; }
+  try { S.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false }); S.cam = true; syncVideos(); }
+  catch (e) { toast('Camera not available here — showing the simulated view.'); }
+  renderAll();
+}
+function syncVideos() {
+  for (const v of [$('arVideo'), $('shelfVideo')]) {
+    if (S.cam) { v.srcObject = S.stream; v.classList.remove('hidden'); v.play().catch(() => {}); }
+    else { v.srcObject = null; v.classList.add('hidden'); }
+  }
+  for (const id of ['camBtn', 'camBtn2']) { $(id).innerHTML = `${ic('cam')}${S.cam ? 'Camera on' : 'Camera'}`; $(id).classList.toggle('on', S.cam); }
+}
+$('camBtn').addEventListener('click', toggleCam);
+$('camBtn2').addEventListener('click', toggleCam);
+
+// Compass
+async function enableCompass() {
+  try {
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      const p = await DeviceOrientationEvent.requestPermission(); if (p !== 'granted') throw new Error('denied');
+    }
+    const h = (e) => {
+      let hd = null;
+      if (typeof e.webkitCompassHeading === 'number') hd = e.webkitCompassHeading;
+      else if (e.absolute && e.alpha != null) hd = 360 - e.alpha;
+      if (hd == null) return;
+      S.heading = hd;
+      if (S.tab === 'ar') { const a = $('arrowSvg'); const s = S.steps[S.arStep]; if (a && s && s.type === 'walk') a.style.transform = `perspective(500px) rotateX(48deg) rotate(${s.bearing + S.settings.north - hd}deg)`; }
+    };
+    window.addEventListener('deviceorientationabsolute', h, true);
+    window.addEventListener('deviceorientation', h, true);
+    $('compassBtn').innerHTML = `${ic('compass')}Compass on`; $('compassBtn').classList.add('on');
+    setTimeout(() => { if (S.heading == null) toast('No compass reading — using turn-by-turn arrows.'); }, 2500);
+  } catch (e) { toast('Compass not available — using turn-by-turn arrows.'); }
+}
+$('compassBtn').addEventListener('click', enableCompass);
+
+// ---------------- Floor AR (WebXR, beta: Chrome on Android with ARCore) ----------------
+function loadScript(src) { return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+(async () => { try { if (navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')) $('xrBtn').classList.remove('hidden'); } catch (e) {} })();
+async function startFloorAR() {
+  if (!S.route) { toast('Plan a route first'); return; }
+  // remaining walking path on the current floor
+  let i = S.arStep; while (i < S.steps.length && S.steps[i].type !== 'walk') i++;
+  if (i >= S.steps.length) { toast('No more walking on this floor'); return; }
+  const floor = S.steps[i].floor, pts = [];
+  for (let k = i; k < S.steps.length && S.steps[k].floor === floor && S.steps[k].type === 'walk'; k++) S.steps[k].pts.forEach((p) => { const l = pts[pts.length - 1]; if (!l || l[0] !== p[0] || l[1] !== p[1]) pts.push(p); });
+  try { if (!window.THREE) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'); } catch (e) { toast('Could not load 3D library (offline?)'); return; }
+  const T = window.THREE;
+  const session = await navigator.xr.requestSession('immersive-ar', { requiredFeatures: ['local-floor'], optionalFeatures: ['dom-overlay'], domOverlay: { root: $('xrOverlay') } });
+  const renderer = new T.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.xr.enabled = true; renderer.xr.setReferenceSpaceType('local-floor');
+  document.body.appendChild(renderer.domElement);
+  await renderer.xr.setSession(session);
+  const scene = new T.Scene(), camera = new T.PerspectiveCamera();
+  scene.add(new T.HemisphereLight(0xffffff, 0x444444, 1.2));
+  // Convert map points to metres relative to the first point, rotated so the
+  // direction the phone faced at start (compass, or the first leg) is -Z.
+  const mpp = S.settings.mpp, o = pts[0];
+  const firstTrue = C.bearing({ x: pts[0][0], y: pts[0][1] }, { x: pts[1][0], y: pts[1][1] }) + S.settings.north;
+  const h0 = S.heading != null ? S.heading : firstTrue;
+  const toWorld = (p) => { const dx = (p[0] - o[0]) * mpp, dy = (p[1] - o[1]) * mpp; const dist = Math.hypot(dx, dy); const b = (Math.atan2(dx, -dy) * 180 / Math.PI + S.settings.north - h0) * Math.PI / 180; return new T.Vector3(dist * Math.sin(b), 0.02, -dist * Math.cos(b)); };
+  const W = pts.map(toWorld);
+  const shape = new T.Shape(); shape.moveTo(0, 0.25); shape.lineTo(0.22, -0.05); shape.lineTo(0.1, -0.05); shape.lineTo(0.1, -0.25); shape.lineTo(-0.1, -0.25); shape.lineTo(-0.1, -0.05); shape.lineTo(-0.22, -0.05); shape.closePath();
+  const geo = new T.ShapeGeometry(shape), mat = new T.MeshBasicMaterial({ color: 0xffc83a, transparent: true, opacity: 0.9, side: T.DoubleSide });
+  for (let k = 0; k < W.length - 1; k++) {
+    const a = W[k], b = W[k + 1], len = a.distanceTo(b), ang = Math.atan2(b.x - a.x, -(b.z - a.z));
+    for (let t = 0.6; t < len; t += 0.9) {
+      const m = new T.Mesh(geo, mat); const p = a.clone().lerp(b, t / len);
+      m.position.copy(p); m.rotation.x = -Math.PI / 2; m.rotation.z = -ang; scene.add(m);
+    }
+  }
+  const end = W[W.length - 1];
+  const pin = new T.Mesh(new T.CylinderGeometry(0.05, 0.05, 1.6, 12), new T.MeshStandardMaterial({ color: 0xe10028 }));
+  pin.position.set(end.x, 0.8, end.z); scene.add(pin);
+  const ball = new T.Mesh(new T.SphereGeometry(0.18, 20, 16), new T.MeshStandardMaterial({ color: 0xffd54a, emissive: 0x664400 }));
+  ball.position.set(end.x, 1.75, end.z); scene.add(ball);
+  $('xrOverlay').classList.remove('hidden');
+  $('xrText').textContent = `Follow the arrows on the floor · ${S.steps[i].text}`;
+  renderer.setAnimationLoop((t) => { ball.position.y = 1.75 + Math.sin(t / 300) * 0.06; renderer.render(scene, camera); });
+  const stop = () => { renderer.setAnimationLoop(null); renderer.domElement.remove(); $('xrOverlay').classList.add('hidden'); };
+  session.addEventListener('end', stop);
+  $('xrExit').onclick = () => session.end();
+}
+$('xrBtn').addEventListener('click', () => startFloorAR().catch((e) => toast('Floor AR failed: ' + e.message)));
+
+// ---------------- SHELF ----------------
+function hashColor(id) { const c = ['#7b2d26', '#2f5d50', '#3b4a7a', '#8a5a1f', '#5b3a6e', '#2d6a7b', '#6b6b2a', '#9c4a3a', '#35553a', '#4a3b2a']; return c[id % c.length]; }
+function rand(seed) { const x = Math.sin(seed) * 10000; return x - Math.floor(x); }
+function shelfTarget() {
+  const id = S.shelfBookId || (S.mode === 'single' && S.sel && S.sel.kind === 'book' ? S.sel.id : null);
+  const b = id ? bookById(id) : null;
+  return b && whereIs(b).exact ? b : null;
+}
+function renderShelf() {
+  const tgt = shelfTarget();
+  const range = tgt ? rangeById(tgt.loc.range) : (S.facingRange ? rangeById(S.facingRange) : D.ranges[0]);
+  const face = S.shelfFace || (tgt ? tgt.loc.face : range.faces[0]);
+  $('shelfTitle').textContent = tgt ? tgt.title : 'Browse the shelves';
+  $('faceRow').innerHTML = `<span class="lbl">${esc(range.name)}</span>` + range.faces.map((f) => `<button class="ftab ${f === face ? 'on' : ''}" data-face="${f}">Face ${f}</button>`).join('');
+  const st = $('shelfStage'); st.classList.toggle('cam', S.cam); st.classList.toggle('sim', !S.cam);
+  $('shelfHudL').textContent = S.facingRange ? `Scanned: ${rangeById(S.facingRange).name.split(' · ')[0]} · face ${S.shelfFace}` : 'Not scanned — showing ' + range.name.split(' · ')[0];
+  $('shelfHudR').textContent = S.cam ? '● Live camera' : '◌ Simulated';
+  const body = $('shelfBody');
+  if (tgt && S.facingRange && S.facingRange !== tgt.loc.range) {
+    body.innerHTML = `<div class="msg" style="background:#0007"><div class="bigic">${ic('swap')}</div><div class="big">Wrong range</div><div>Your book is in ${esc(range.name)}.</div></div>`; $('shelfInfo').innerHTML = ''; return;
+  }
+  if (tgt && S.facingRange && S.shelfFace && S.shelfFace !== tgt.loc.face) {
+    body.innerHTML = `<div class="msg" style="background:#0007"><div class="bigic">${ic('turn')}</div><div class="big">Other side of this range</div><div>Walk around to face ${tgt.loc.face}.</div></div>`; $('shelfInfo').innerHTML = ''; return;
+  }
+  const onFace = S.books.filter((b) => b.status === 'shelf' && b.loc && b.loc.range === range.id && b.loc.face === face);
+  const flagged = C.findMisshelved(onFace);
+  let h = `<div class="face" style="grid-template-columns:repeat(${range.sections},1fr)">`;
+  for (let sec = 1; sec <= range.sections; sec++) {
+    h += `<div class="section" style="grid-template-rows:repeat(${range.shelves},1fr)"><div class="secnum">§${sec}</div>`;
+    for (let sh = 1; sh <= range.shelves; sh++) {
+      h += '<div class="shelfrow">';
+      if (!S.cam) { let x = 1, k = 0; while (x < 96) { const wv = 2.2 + rand(sec * 97 + sh * 13 + k) * 2.4, hv = 62 + rand(sec * 7 + sh * 31 + k * 3) * 30; h += `<div class="bk" style="left:${x}%;width:${wv}%;height:${hv}%;background:${hashColor(sec + sh + k)};opacity:.55"></div>`; x += wv + 0.4; k++; if (rand(sec + sh * 5 + k) > .93) x += 6; } }
+      for (const b of onFace.filter((b) => b.loc.section === sec && b.loc.shelf === sh)) {
+        const left = Math.min(94, b.loc.pos / range.sectionCm * 100), isT = tgt && b.id === tgt.id;
+        h += `<div class="bk ${isT ? 'tgt' : ''} ${flagged.has(b.id) ? 'flag' : ''}" title="${esc(b.title)} · ${esc(b.call)}" style="left:${left}%;width:5%;height:92%;background:${hashColor(b.id)}">${isT ? `<div class="bubble">${ic('pin')}${esc(b.call)}</div>` : ''}</div>`;
+      }
+      h += '</div>';
+    }
+    h += '</div>';
+  }
+  body.innerHTML = h + '</div>';
+  const fl = [...flagged].map(bookById);
+  const parts = [];
+  if (tgt) parts.push(`<div class="bcard" style="cursor:default"><div class="stripe"></div><div class="body"><div class="tt">${esc(tgt.title)}</div>${tgt.author ? `<div class="au">${esc(tgt.author)}</div>` : ''}<div class="meta">${statusPill(tgt)}<span class="callno">${esc(tgt.call)}</span></div>
+    <div class="where">${PIN}<span>Face ${tgt.loc.face} · section ${tgt.loc.section} · shelf ${tgt.loc.shelf} from the top · ~${tgt.loc.pos} cm from the left edge of the section</span></div>
+    <div class="au" style="margin-top:4px">Location confirmed ${ago(tgt.seen)}</div>
+    <div class="acts"><button class="btn sec" data-nothere="${tgt.id}">${ic('flag')}Not here?</button></div></div></div>`);
+  else parts.push('<div class="empty">Pick a book that has been cataloged shelf-by-shelf (the A–BP pilot range) to see its exact spot.</div>');
+  if (fl.length) parts.push(`<div class="card warn" style="margin-top:0"><b>Possibly misshelved on this face</b> (out of call-number order): ${fl.map((b) => `${esc(b.title)} <code>${esc(b.call)}</code>`).join(', ')}</div>`);
+  $('shelfInfo').innerHTML = `<div class="list" style="margin-top:0">${parts.join('')}</div>`;
+}
+$('faceRow').addEventListener('click', (e) => { if (e.target.dataset.face) { S.shelfFace = e.target.dataset.face; renderShelf(); } });
+$('shelfInfo').addEventListener('click', (e) => { const n = e.target.closest('[data-nothere]'); if (n) reportNotHere(+n.dataset.nothere); });
+$('shelfScan').addEventListener('click', () => openScanner('Scan the marker on the range end', 'range', (m) => { S.facingRange = m.range; S.shelfFace = m.face; renderShelf(); }));
+
+// ---------------- Shelf OCR ----------------
+let ocrResult = null;
+function openOCR() {
+  const r0 = S.facingRange || D.ranges[0].id;
+  $('oRange').innerHTML = D.ranges.map((r) => `<option value="${r.id}" ${r.id === r0 ? 'selected' : ''}>${esc(r.name.split(' · ')[0])}</option>`).join('');
+  fillOcrSel();
+  if (S.shelfFace) $('oFace').value = S.shelfFace;
+  $('ocrStatus').textContent = ''; $('ocrResult').innerHTML = ''; $('ocrProg').classList.add('hidden'); ocrResult = null;
+  $('ocrFrame').disabled = !S.cam;
+  $('ocrModal').classList.remove('hidden');
+}
+function fillOcrSel() {
+  const r = rangeById($('oRange').value);
+  $('oFace').innerHTML = r.faces.map((f) => `<option>${f}</option>`).join('');
+  $('oSec').innerHTML = Array.from({ length: r.sections }, (_, i) => `<option>${i + 1}</option>`).join('');
+  $('oShelf').innerHTML = Array.from({ length: r.shelves }, (_, i) => `<option>${i + 1}</option>`).join('');
+}
+$('oRange').addEventListener('change', fillOcrSel);
+$('ocrBtn').addEventListener('click', openOCR); $('ocrBtn2').addEventListener('click', openOCR);
+$('ocrClose').addEventListener('click', () => $('ocrModal').classList.add('hidden'));
+async function runOCR(source, width) {
+  $('ocrStatus').textContent = 'Loading text recognition…'; $('ocrProg').classList.remove('hidden'); $('ocrProg').firstElementChild.style.width = '5%';
+  try { if (!window.Tesseract) await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'); }
+  catch (e) { $('ocrStatus').textContent = 'Could not load text recognition (needs internet). Type the call numbers instead.'; $('ocrProg').classList.add('hidden'); return; }
+  try {
+    const { data } = await Tesseract.recognize(source, 'eng', { logger: (m) => { if (m.status === 'recognizing text') { $('ocrProg').firstElementChild.style.width = Math.round(10 + m.progress * 90) + '%'; $('ocrStatus').textContent = 'Reading labels… ' + Math.round(m.progress * 100) + '%'; } } });
+    const found = C.extractCalls(data.words || [], S.books);
+    showOcr(found, width, `Read ${(data.words || []).length} words · matched ${found.length} book${found.length !== 1 ? 's' : ''} in the catalog.`);
+  } catch (e) { $('ocrStatus').textContent = 'Recognition failed: ' + e.message; }
+  $('ocrProg').classList.add('hidden');
+}
+function showOcr(found, width, msg) {
+  ocrResult = { found, width };
+  const bad = C.outOfOrder(found);
+  $('ocrStatus').textContent = msg;
+  $('ocrResult').innerHTML = found.length ? `<ol style="padding-left:20px;font-size:13px">${found.map((f) => `<li>${bad.has(f.book.id) ? '⚠️ ' : ''}<b>${esc(f.book.title)}</b> <code>${esc(f.book.call)}</code>${bad.has(f.book.id) ? ' <span class="pill warn">out of order</span>' : ''}</li>`).join('')}</ol>
+    <button class="btn" id="ocrSave">Save these ${found.length} positions</button>` : '<p class="muted small">No catalog call numbers recognised. Try a closer, straight-on photo with good light.</p>';
+  const sv = $('ocrSave'); if (sv) sv.onclick = saveOcr;
+}
+function saveOcr() {
+  const r = rangeById($('oRange').value), face = $('oFace').value, section = +$('oSec').value, shelf = +$('oShelf').value;
+  const { found, width } = ocrResult; const n = found.length;
+  found.forEach((f, i) => {
+    const b = f.book;
+    const pos = width ? Math.round(Math.max(0, Math.min(1, f.x / width)) * r.sectionCm) : Math.round(((i + 0.5) / n) * r.sectionCm);
+    b.loc = { range: r.id, face, section, shelf, pos }; b.status = 'shelf'; b.seen = new Date().toISOString(); closeReports(b); touch(b);
+  });
+  addLog(`Shelf scan: ${n} books confirmed on ${r.name.split(' · ')[0]} face ${face} §${section} shelf ${shelf}`);
+  $('ocrModal').classList.add('hidden'); toast(`${n} locations confirmed`);
+  S.facingRange = r.id; S.shelfFace = face;
+  if (S.mode === 'trip' || S.sel) computeRoute(true); else renderAll();
+}
+$('ocrFile').addEventListener('change', async (e) => {
+  const f = e.target.files[0]; if (!f) return; e.target.value = '';
+  let w = 0; try { const bm = await createImageBitmap(f); w = bm.width; bm.close && bm.close(); } catch (err) {}
+  runOCR(f, w);
+});
+$('ocrFrame').addEventListener('click', () => {
+  const v = $('shelfVideo'); if (!S.cam || !v.videoWidth) { toast('Turn the camera on first'); return; }
+  const c = document.createElement('canvas'); c.width = v.videoWidth; c.height = v.videoHeight; c.getContext('2d').drawImage(v, 0, 0);
+  runOCR(c, c.width);
+});
+$('ocrTyped').addEventListener('click', () => { const f = C.extractCallsFromLines($('ocrText').value, S.books); showOcr(f, 0, `Matched ${f.length} book${f.length !== 1 ? 's' : ''} from your list.`); });
+
+// ---------------- SCANNER ----------------
+let scanLoop = null, scanStream = null, scanCb = null, scanKind = 'any';
+async function openScanner(title, kind, cb, extraOptions) {
+  scanCb = cb; scanKind = kind;
+  $('scanTitle').textContent = title;
+  const opts = (extraOptions || MARKERS.filter((m) => kind === 'any' || m.kind === kind).map((m) => [m.code, m.name]));
+  $('scanPick').innerHTML = opts.map(([v, t]) => `<option value="${esc(v)}">${esc(t)}</option>`).join('');
+  $('scanModal').classList.remove('hidden');
+  $('scanNote').textContent = 'Starting camera…';
+  try {
+    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const v = $('scanVideo'); v.srcObject = scanStream; await v.play();
+    if ('BarcodeDetector' in window) {
+      const det = new BarcodeDetector({ formats: ['qr_code', 'ean_13', 'code_128', 'code_39'] });
+      $('scanNote').textContent = 'Point at the code.';
+      scanLoop = setInterval(async () => { try { const r = await det.detect(v); if (r.length) handleScan(r[0].rawValue); } catch (e) {} }, 300);
+    } else $('scanNote').textContent = 'This browser can’t read codes yet (works in Chrome on Android). Choose below instead.';
+  } catch (e) { $('scanNote').textContent = 'Camera not available here — choose below (simulates scanning).'; }
+}
+function closeScanner() { clearInterval(scanLoop); scanLoop = null; scanStream && scanStream.getTracks().forEach((t) => t.stop()); scanStream = null; $('scanModal').classList.add('hidden'); }
+function handleScan(code) {
+  const cb = scanCb;
+  if (scanKind === 'raw') { closeScanner(); cb && cb(code); return; }
+  const m = MARKERS.find((x) => x.code === code);
+  if (!m || (scanKind !== 'any' && m.kind !== scanKind)) { $('scanNote').textContent = 'That’s not the right kind of ShelfFinder marker: ' + code; return; }
+  closeScanner(); cb && cb(m);
+}
+$('scanClose').addEventListener('click', closeScanner);
+$('scanUse').addEventListener('click', () => handleScan($('scanPick').value));
+
+// ---------------- LIBRARIAN ----------------
+function allFlagged() {
+  const flagged = new Set();
+  for (const r of D.ranges) for (const f of r.faces) C.findMisshelved(S.books.filter((b) => b.status === 'shelf' && b.loc && b.loc.range === r.id && b.loc.face === f)).forEach((id) => flagged.add(id));
+  return flagged;
+}
+const isStale = (b) => b.status === 'shelf' && (Date.now() - new Date(b.seen || 0).getTime()) > 30 * DAY;
+function renderLib() {
+  const flagged = allFlagged();
+  const reps = S.books.filter(openReports), stale = S.books.filter((b) => isStale(b) && !openReports(b) && !flagged.has(b.id));
+  const shelf = S.books.filter((b) => b.status === 'shelf'), fresh = shelf.filter((b) => (Date.now() - new Date(b.seen || 0).getTime()) <= 7 * DAY);
+  $('repBadge').textContent = reps.length; $('repBadge').classList.toggle('hidden', !reps.length);
+  $('kpis').innerHTML = [[S.books.length, 'books tracked'], [shelf.length ? Math.round(fresh.length / shelf.length * 100) + '%' : '—', 'confirmed in last 7 days'], [reps.length, 'open “Not here” reports', 1], [flagged.size, 'possibly misshelved', 1], [stale.length, 'not confirmed in 30+ days', 1], [S.books.filter((b) => b.status === 'missing').length, 'marked missing', 1]]
+    .map(([v, l, warn]) => `<div class="kpi ${warn && v ? 'alert' : ''}"><b>${v}</b><span>${l}</span></div>`).join('');
+  // attention list
+  const att = [];
+  reps.forEach((b) => att.push(`<div class="item" style="cursor:default;flex-wrap:wrap"><span class="ic red">${ic('flag')}</span><div class="grow" style="min-width:160px"><b>${esc(b.title)}</b> <code>${esc(b.call)}</code><div class="muted small">Reported not at ${esc(locLine(b))} · ${ago(b.reports.filter((r) => r.open).slice(-1)[0].at)}</div></div><div class="row" style="gap:4px"><button class="btn sm" data-act="shelve" data-id="${b.id}">Found it</button><button class="btn sec sm" data-act="missing" data-id="${b.id}">Missing</button><button class="btn sec sm" data-act="dismiss" data-id="${b.id}">Dismiss</button></div></div>`));
+  [...flagged].map(bookById).filter((b) => !openReports(b)).forEach((b) => att.push(`<div class="item" style="cursor:default;flex-wrap:wrap"><span class="ic warn">${ic('alert')}</span><div class="grow" style="min-width:160px"><b>${esc(b.title)}</b> <code>${esc(b.call)}</code><div class="muted small">Out of call-number order at ${esc(locLine(b))}</div></div><button class="btn sm" data-act="shelve" data-id="${b.id}">Reshelve</button></div>`));
+  stale.slice(0, 8).forEach((b) => att.push(`<div class="item" style="cursor:default;flex-wrap:wrap"><span class="ic gray">${ic('clock')}</span><div class="grow" style="min-width:160px"><b>${esc(b.title)}</b> <code>${esc(b.call)}</code><div class="muted small">Last confirmed ${ago(b.seen)}</div></div><button class="btn sec sm" data-act="confirm" data-id="${b.id}">✓ Confirm</button></div>`));
+  $('attention').innerHTML = att.length ? `<div class="list" style="margin:0">${att.join('')}</div>` : `<div class="empty">${ic('checkc', 'ok-t')} All clear — nothing needs attention.</div>`;
+  // heat map
+  const heat = {};
+  const bump = (b, n) => { const w = whereIs(b); const blk = w.block || (C.lookup(b.call, D).block); if (!blk) return; heat[blk.id] = heat[blk.id] || { floor: blk.floor, rect: blk.rect, n: 0 }; heat[blk.id].n += n; };
+  reps.forEach((b) => bump(b, openReports(b))); flagged.forEach((id) => bump(bookById(id), 1)); stale.forEach((b) => bump(b, 1));
+  const hfloors = ['L2', 'L4', 'L3', 'L1'];
+  $('heatTabs').innerHTML = hfloors.map((f) => `<button class="ftab ${f === S.heatFloor ? 'on' : ''}" data-hf="${f}">${FLOOR(f).name.replace('Level ', 'L')}</button>`).join('');
+  drawMap($('heatMap'), S.heatFloor, { heat: Object.values(heat) });
+  const top = Object.entries(S.searches).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  $('topSearch').innerHTML = top.length ? top.map(([q, n]) => `<span class="pill gray" style="margin:2px">${esc(q)} · ${n}</span>`).join('') : '<span class="muted">No searches yet this session.</span>';
+  // inventory
+  const q = $('invQ').value.trim().toLowerCase();
+  const rows = S.books.filter((b) => !q || (b.title + b.author + b.call).toLowerCase().includes(q)).slice().sort((a, b) => C.compareCall(a.call, b.call)).map((b) => `<tr>
+    <td><b>${esc(b.title)}</b><div class="muted small">${esc(b.author)}</div></td>
+    <td><code>${esc(b.call)}</code></td>
+    <td class="small">${esc(locLine(b))} ${flagged.has(b.id) ? '<span class="pill warn">Out of order?</span>' : ''}<div class="muted">✓ ${ago(b.seen)}</div></td>
+    <td>${statusPill(b)}</td>
+    <td><div class="row" style="gap:4px">
+      ${b.status === 'shelf' ? `<button class="btn sec sm" data-act="out" data-id="${b.id}">Check out</button><button class="btn sec sm" data-act="confirm" data-id="${b.id}">✓</button>` : ''}
+      ${b.status === 'out' ? `<button class="btn sec sm" data-act="return" data-id="${b.id}">Return</button>` : ''}
+      ${b.status !== 'out' ? `<button class="btn ${b.status === 'cart' ? '' : 'sec'} sm" data-act="shelve" data-id="${b.id}">${b.status === 'cart' ? 'Reshelve' : 'Set location'}</button>` : ''}
+      <button class="btn sec sm" data-act="find" data-id="${b.id}">Find</button>
+    </div></td></tr>`).join('');
+  $('inv').innerHTML = `<tr><th>Book</th><th>Call #</th><th>Location</th><th>Status</th><th></th></tr>${rows}`;
+  $('log').innerHTML = S.log.map((l) => `<div>${esc(l)}</div>`).join('');
+  $('mpp').value = S.settings.mpp; $('north').value = S.settings.north;
+  if (document.activeElement !== $('catUrl')) $('catUrl').value = S.settings.catalogUrl;
+  if (document.activeElement !== $('fbUrl')) $('fbUrl').value = S.settings.fbUrl || '';
+  if (document.activeElement !== $('liveUrl')) $('liveUrl').value = S.settings.liveUrl || '';
+  $('deepLink').value = location.href.split(/[?#]/)[0] + '?call={CALL NUMBER}';
+  setSync(Sync.url ? $('syncChip').textContent : 'Local');
+  if (!ED.drag) renderEditor();
+}
+$('heatTabs').addEventListener('click', (e) => { if (e.target.dataset.hf) { S.heatFloor = e.target.dataset.hf; renderLib(); } });
+$('invQ').addEventListener('input', renderLib);
+function libAction(e) {
+  const a = e.target.dataset.act; if (!a) return; const b = bookById(+e.target.dataset.id);
+  if (a === 'out') { b.status = 'out'; addLog(`“${b.title}” checked out`); }
+  if (a === 'return') { b.status = 'cart'; addLog(`“${b.title}” returned → return cart`); }
+  if (a === 'confirm') { b.seen = new Date().toISOString(); closeReports(b); addLog(`“${b.title}” confirmed in place`); }
+  if (a === 'missing') { b.status = 'missing'; closeReports(b); addLog(`“${b.title}” marked missing`); }
+  if (a === 'dismiss') { closeReports(b); addLog(`Report on “${b.title}” dismissed`); }
+  if (a === 'shelve') { openEdit(b); return; }
+  if (a === 'find') { selectBook(b.id); return; }
+  touch(b);
+  if (S.mode === 'trip' || S.sel) computeRoute(true); else renderAll();
+}
+$('inv').addEventListener('click', libAction);
+$('attention').addEventListener('click', libAction);
+
+let editCtx = null;
+function openEdit(b, presetRange, presetFace) {
+  editCtx = { book: b, isNew: !b };
+  const r0 = presetRange || (b && b.loc && b.loc.range) || '';
+  const f0 = presetFace || (b && b.loc && b.loc.face) || 'W';
+  $('editTitle').textContent = b ? `Shelve “${b.title}”` : 'Add a book';
+  $('editBody').innerHTML = (b ? `<div class="muted small"><code>${esc(b.call)}</code> · belongs in ${esc((C.lookup(b.call, D).block || {}).id || '—')}</div>` : `
+      <label class="f">Title</label><input id="eTitle" style="width:100%">
+      <label class="f">Author</label><input id="eAuthor" style="width:100%">
+      <label class="f">Call number</label><input id="eCall" style="width:100%" placeholder="e.g. BF441 .K238">
+      <label class="f">ISBN / barcode (optional, for scanning)</label><input id="eIsbn" style="width:100%">`) + `
+    <label class="f">Where is it?</label>
+    <select id="eRange" style="width:100%"><option value="">Not cataloged shelf-by-shelf (range-level only)</option>${D.ranges.map((r) => `<option value="${r.id}" ${r.id === r0 ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select>
+    <div id="ePos" class="row" style="margin-top:6px"></div>`;
+  const fillPos = () => {
+    const r = rangeById($('eRange').value);
+    if (!r) { $('ePos').innerHTML = ''; return; }
+    const l = (b && b.loc) || {};
+    $('ePos').innerHTML = `
+      <label class="small">Face <select id="eFace">${r.faces.map((f) => `<option ${f === f0 ? 'selected' : ''}>${f}</option>`).join('')}</select></label>
+      <label class="small">Section <select id="eSec">${Array.from({ length: r.sections }, (_, i) => `<option ${i + 1 === (l.section || 1) ? 'selected' : ''}>${i + 1}</option>`).join('')}</select></label>
+      <label class="small">Shelf (1=top) <select id="eShelf">${Array.from({ length: r.shelves }, (_, i) => `<option ${i + 1 === (l.shelf || 1) ? 'selected' : ''}>${i + 1}</option>`).join('')}</select></label>
+      <label class="small">cm from left <input id="ePosCm" type="number" min="0" max="${r.sectionCm}" value="${l.pos ?? 10}" style="width:70px"></label>`;
+  };
+  $('eRange').addEventListener('change', fillPos); fillPos();
+  $('editModal').classList.remove('hidden');
+}
+$('editCancel').addEventListener('click', () => $('editModal').classList.add('hidden'));
+$('editSave').addEventListener('click', () => {
+  let b = editCtx.book;
+  if (editCtx.isNew) {
+    const t = $('eTitle').value.trim(), c = $('eCall').value.trim();
+    if (!t || !c) { toast('Title and call number are required'); return; }
+    b = { id: Math.max(0, ...S.books.map((x) => x.id)) + 1, title: t, author: $('eAuthor').value.trim(), call: c.toUpperCase(), isbn: $('eIsbn').value.trim(), status: 'shelf', reports: [] };
+    S.books.push(b); addLog(`Added “${t}”`);
+  }
+  const r = $('eRange').value;
+  if (r) {
+    b.loc = { range: r, face: $('eFace').value, section: +$('eSec').value, shelf: +$('eShelf').value, pos: Math.max(0, +$('ePosCm').value || 0) };
+    addLog(`“${b.title}” shelved: ${rangeById(r).name.split(' · ')[0]}, face ${b.loc.face}, §${b.loc.section}, shelf ${b.loc.shelf}, ${b.loc.pos} cm`);
+  } else { delete b.loc; addLog(`“${b.title}” reshelved (range-level)`); }
+  b.status = 'shelf'; b.seen = new Date().toISOString(); closeReports(b); touch(b);
+  $('editModal').classList.add('hidden');
+  if (S.mode === 'trip' || S.sel) computeRoute(true); else renderAll();
+});
+$('addBtn').addEventListener('click', () => openEdit(null));
+$('shelveBtn').addEventListener('click', () => openScanner('Step 1 · Scan the range marker', 'range', (m) => {
+  const opts = S.books.slice().sort((a, b) => C.compareCall(a.call, b.call)).map((b) => [b.isbn || ('ID:' + b.id), `${b.call} — ${b.title}`]);
+  setTimeout(() => openScanner('Step 2 · Scan the book’s barcode', 'raw', (code) => {
+    const b = S.books.find((x) => (x.isbn && x.isbn === code) || ('ID:' + x.id) === code);
+    if (!b) { toast('No book with barcode ' + code + ' — add it first'); return; }
+    openEdit(b, m.range, m.face);
+  }, opts), 150);
+}));
+
+// Data in/out
+$('exportBtn').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify({ app: 'ShelfFinder', version: 2, exported: new Date().toISOString(), books: S.books, settings: S.settings, log: S.log, searches: S.searches }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'shelffinder-data.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+$('importFile').addEventListener('change', (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const j = JSON.parse(r.result); if (!Array.isArray(j.books)) throw new Error('missing books');
+      S.books = j.books.map((b) => Object.assign({ reports: [] }, b)); if (j.settings) Object.assign(S.settings, j.settings); if (j.log) S.log = j.log; if (j.searches) S.searches = j.searches;
+      G = C.buildGraph(D, S.settings.mpp); S.sel = null; S.cart = []; S.mode = 'single';
+      if (Sync.url) S.books.forEach(touch);
+      addLog(`Imported ${S.books.length} books`); computeRoute(); toast('Imported');
+    } catch (err) { toast('Could not import: ' + err.message); }
+  };
+  r.readAsText(f); e.target.value = '';
+});
+$('csvFile').addEventListener('change', (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const rows = C.catalogFromCSV(r.result); let added = 0, updated = 0;
+      let next = Math.max(0, ...S.books.map((x) => x.id)) + 1;
+      for (const row of rows) {
+        const ex = S.books.find((b) => C.normCall(b.call) === C.normCall(row.call) || (row.isbn && b.isbn === row.isbn));
+        if (ex) { Object.assign(ex, { title: row.title, author: row.author || ex.author, isbn: row.isbn || ex.isbn, status: row.status === 'shelf' ? (ex.status === 'cart' ? 'cart' : 'shelf') : row.status }); touch(ex); updated++; }
+        else { const b = Object.assign({ id: next++, reports: [], seen: null }, row); S.books.push(b); touch(b); added++; }
+      }
+      addLog(`Catalog import: ${added} added, ${updated} updated`); toast(`Catalog import: ${added} added, ${updated} updated`); renderAll();
+    } catch (err) { toast('CSV import failed: ' + err.message); }
+  };
+  r.readAsText(f); e.target.value = '';
+});
+$('fbConnect').addEventListener('click', async () => {
+  const u = $('fbUrl').value.trim();
+  if (!u) { Sync.disconnect(); S.settings.fbUrl = ''; renderLib(); return; }
+  $('fbStatus').textContent = 'Connecting…';
+  try { await Sync.connect(u); toast('Live sync on — every phone now shares the same locations'); }
+  catch (e) { $('fbStatus').textContent = 'Could not connect: ' + e.message; }
+});
+$('catUrl').addEventListener('change', (e) => { S.settings.catalogUrl = e.target.value.trim(); renderAll(); });
+$('mpp').addEventListener('change', (e) => { const v = parseFloat(e.target.value); if (v > 0) { S.settings.mpp = v; G = C.buildGraph(D, v); computeRoute(true); } });
+$('north').addEventListener('change', (e) => { S.settings.north = parseFloat(e.target.value) || 0; renderAR(); });
+$('printBtn').addEventListener('click', async () => {
+  const sheet = $('printSheet');
+  sheet.innerHTML = MARKERS.map((m, i) => `<div class="mk"><div style="font-weight:700;font-size:18px">ShelfFinder</div><div class="qr" id="qr${i}"></div><div style="font-size:15px">${esc(m.name)}</div><div style="font-size:11px;color:#666">${esc(m.code)}</div></div>`).join('');
+  try { if (!window.QRCode) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'); MARKERS.forEach((m, i) => new QRCode($('qr' + i), { text: m.code, width: 170, height: 170 })); }
+  catch (e) { toast('QR library unavailable offline — printing text codes'); MARKERS.forEach((m, i) => { $('qr' + i).innerHTML = `<div style="font:700 22px monospace;padding:30px;border:2px solid #000">${esc(m.code)}</div>`; }); }
+  setTimeout(() => window.print(), 400);
+});
+
+// ---------------- LIVE CATALOG SETTINGS ----------------
+$('liveSave').addEventListener('click', () => {
+  S.settings.liveUrl = $('liveUrl').value.trim(); S.live = { q: '', loading: false, error: '', ids: [], total: 0 };
+  addLog(S.settings.liveUrl ? 'Live catalog connected' : 'Live catalog disconnected');
+  toast(S.settings.liveUrl ? 'Live catalog connected — try a search on Find' : 'Live catalog disconnected'); renderAll();
+  if (S.settings.liveUrl) $('liveTest').click();
+});
+$('liveTest').addEventListener('click', async () => {
+  $('liveOut').innerHTML = '<p class="muted small">Testing…</p>';
+  try {
+    const d = await liveGet({ action: 'ping' });
+    const line = (ok, label, extra) => `<div>${ic(ok ? 'checkc' : 'xc', ok ? 'ok-t' : 'bad-t')}<span>${label}</span>${extra ? ` <span class="muted">${esc(extra)}</span>` : ''}</div>`;
+    $('liveOut').innerHTML = `<div class="card ok small status">${line(d.key, 'API key stored in the proxy')}${line(d.configuration === 'ok', 'Configuration API', d.configuration === 'ok' ? '' : d.configuration)}${line(d.bibs === 'ok', 'Bibs API', d.bibs === 'ok' ? '' : d.bibs)}${line(!!d.vid, 'Primo view ID', d.vid || 'not set — search won’t work until PRIMO_VID is added')}</div>`;
+  } catch (e) { $('liveOut').innerHTML = `<div class="card status"><div>${ic('xc', 'bad-t')}<span>${esc(e.message)}</span></div></div>`; }
+});
+$('liveLocs').addEventListener('click', async () => {
+  $('liveOut').innerHTML = '<p class="muted small">Loading Colgate’s libraries and locations…</p>';
+  try {
+    const d = await liveGet({ action: 'locations' });
+    const rows = d.locations.map((l) => {
+      const p = C.catalogPlace(l, D);
+      const to = p.kind === 'node' ? `→ ${esc(nodeName(p.node))}` : p.kind === 'status' ? (p.status === 'lasr' ? '→ LASR (request)' : '→ Not in Case-Geyer') : '→ placed by call number';
+      return `<tr><td>${esc(l.libraryName)}</td><td>${esc(l.locationName)}${l.externalName && l.externalName !== l.locationName ? `<div class="muted">${esc(l.externalName)}</div>` : ''}</td><td><code>${esc(l.locationCode)}</code></td><td>${to}</td></tr>`;
+    }).join('');
+    $('liveOut').innerHTML = `<p class="muted small">${d.locations.length} locations. Check each one goes to the right place; to change a mapping, edit <code>catalogRules</code> in src/library-data.js.</p><div style="overflow:auto;max-height:340px"><table><tr><th>Library</th><th>Location</th><th>Code</th><th>ShelfFinder sends people</th></tr>${rows}</table></div>`;
+  } catch (e) { $('liveOut').innerHTML = `<div class="card status"><div>${ic('xc', 'bad-t')}<span>${esc(e.message)}</span></div></div>`; }
+});
+
+// ---------------- MAP EDITOR ----------------
+const ORIGINAL_MAP = JSON.stringify({ floors: D.floors, blocks: D.blocks });
+const ED = { floor: 'L2', mode: 'move', sel: null, drag: null, from: null };
+const ED_HELP = {
+  move: 'Drag any point to where it really is. Tap a point to rename it or give it a category (e.g. restroom).',
+  add: 'Tap the map to add a walking point. It is automatically linked to the point you selected last, so you can “draw” a corridor tap by tap.',
+  connect: 'Tap two points to link them with a walkable line (or unlink them if already linked).',
+  delete: 'Tap a point to delete it with its links. Stairs, elevators, entrances and stack points are protected.',
+  blocks: 'Drag a stack block to move it; drag its corner square to resize it.'
+};
+const CAT_COLOR = { restroom: '#3b82c4', help: '#2f6f6a', study: '#8a5a1f', food: '#5f9a2c', tech: '#6b4fb0', special: '#821019' };
+function edPoint(e) { const svg = $('edMap'), pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const p = pt.matrixTransform(svg.getScreenCTM().inverse()); return [Math.round(p.x), Math.round(p.y)]; }
+function protectedReason(f, id) {
+  if (D.connectors.some((c) => c.id === id && c.floors.includes(f))) return 'it’s a stair/elevator landing';
+  if (D.entrances.includes(f + ':' + id)) return 'it’s an entrance';
+  if (D.blocks.some((b) => b.floor === f && b.node === id)) return 'a stack block uses it';
+  return null;
+}
+function edgeIdx(fl, a, b) { return fl.edges.findIndex((e) => e === a + '-' + b || e === b + '-' + a); }
+function renderEditor() {
+  const f = ED.floor, fl = D.floors[f];
+  $('edFloors').innerHTML = Object.keys(D.floors).sort((a, b) => D.floors[b].order - D.floors[a].order).map((k) => `<button class="ftab ${k === f ? 'on' : ''}" data-edf="${k}">${D.floors[k].name.replace('Level ', 'L')}</button>`).join('');
+  document.querySelectorAll('#edModes [data-mode]').forEach((b) => b.classList.toggle('on', b.dataset.mode === ED.mode));
+  $('edHelp').textContent = ED_HELP[ED.mode];
+  drawMap($('edMap'), f, {});
+  let o = '';
+  for (const b of D.blocks.filter((b) => b.floor === f && b.rect)) {
+    const [x, y, w, h] = b.rect;
+    o += `<rect data-block="${b.id}" x="${x}" y="${y}" width="${w}" height="${h}" fill="rgba(90,100,110,${ED.mode === 'blocks' ? .22 : .08})" stroke="#5A646E" stroke-width="2" stroke-dasharray="6 4" ${ED.mode === 'blocks' ? 'style="cursor:move"' : 'pointer-events="none"'}/>`;
+    if (ED.mode === 'blocks') o += `<text x="${x + 4}" y="${y + 16}" font-size="13" font-weight="700" fill="#5A646E" pointer-events="none">${esc(b.label || b.id)}</text><rect data-bhandle="${b.id}" x="${x + w - 9}" y="${y + h - 9}" width="18" height="18" fill="#5A646E" style="cursor:nwse-resize"/>`;
+  }
+  for (const e of fl.edges) { const [a, b] = e.split('-'); const A = fl.nodes[a], B = fl.nodes[b]; if (A && B) o += `<line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="#E10028" stroke-width="3" opacity=".75" pointer-events="none"/>`; }
+  for (const [id, n] of Object.entries(fl.nodes)) {
+    const conn = D.connectors.some((c) => c.id === id && c.floors.includes(f));
+    const sel = ED.sel === id || ED.from === id, col = n[3] ? CAT_COLOR[n[3]] || '#555' : (conn ? '#2b2622' : '#E10028');
+    o += conn ? `<rect data-node="${id}" x="${n[0] - 9}" y="${n[1] - 9}" width="18" height="18" fill="${col}" stroke="${sel ? '#ffd54a' : '#fff'}" stroke-width="${sel ? 5 : 2}"/>`
+      : `<circle data-node="${id}" cx="${n[0]}" cy="${n[1]}" r="${n[2] ? 9 : 7}" fill="${col}" stroke="${sel ? '#ffd54a' : '#fff'}" stroke-width="${sel ? 5 : 2}"/>`;
+    if (n[2]) o += `<text x="${n[0] + 12}" y="${n[1] + 4}" font-size="11" font-weight="700" fill="#2b2622" stroke="#fff" stroke-width="3" paint-order="stroke" pointer-events="none">${esc(n[2])}</text>`;
+  }
+  $('edMap').insertAdjacentHTML('beforeend', o);
+  // inspector
+  const n = ED.sel && fl.nodes[ED.sel];
+  $('edInspector').innerHTML = n ? `<div class="card teal"><div class="row"><b class="grow">Point “${esc(ED.sel)}” · ${f} · x ${n[0]}, y ${n[1]}</b><button class="btn sec sm" id="edDeselect">Done</button></div>
+    <div class="row" style="margin-top:6px"><input id="edLabel" class="grow" placeholder="Name shown in directions (optional)" value="${esc(n[2] || '')}">
+    <select id="edCat"><option value="">Not a place</option>${Object.entries(D.placeTypes || {}).map(([k, t]) => `<option value="${k}" ${n[3] === k ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select></div></div>` : '';
+  if (n) {
+    $('edLabel').onchange = (e) => { const v = e.target.value.trim(); n[2] = v || null; if (!n[2] && !n[3]) n.length = 2; edChanged(); };
+    $('edCat').onchange = (e) => { const v = e.target.value; if (v) { n[2] = n[2] || 'New place'; n[3] = v; } else n.length = Math.min(n.length, 3); edChanged(); };
+    $('edDeselect').onclick = () => { ED.sel = null; renderEditor(); };
+  }
+  // connectivity check
+  const Gt = C.buildGraph(D, S.settings.mpp), sp = C.dijkstra(Gt, D.entrances[0]);
+  const bad = Object.keys(Gt).filter((k) => sp.dist[k] === Infinity);
+  $('edCheck').innerHTML = bad.length ? `<span class="bad-t">${ic('alert')} ${bad.length} point${bad.length > 1 ? 's' : ''} can’t be reached: ${bad.slice(0, 4).map(esc).join(', ')}${bad.length > 4 ? '…' : ''}</span>` : `<span class="ok-t">${ic('checkc')} Every point is reachable</span>`;
+}
+function edChanged() {
+  try { G = C.buildGraph(D, S.settings.mpp); } catch (e) { toast('Map error: ' + e.message); return; }
+  if (S.mode === 'trip' || S.sel) computeRoute(true); else renderAll();
+}
+$('edFloors').addEventListener('click', (e) => { const f = e.target.dataset.edf; if (f) { ED.floor = f; ED.sel = ED.from = null; renderEditor(); } });
+$('edModes').addEventListener('click', (e) => { const m = e.target.dataset.mode; if (m) { ED.mode = m; ED.from = null; renderEditor(); } });
+$('edMap').addEventListener('pointerdown', (e) => {
+  const f = ED.floor, fl = D.floors[f], p = edPoint(e);
+  const tn = e.target.closest('[data-node]'), tb = e.target.closest('[data-block]'), th = e.target.closest('[data-bhandle]');
+  const id = tn && tn.dataset.node;
+  if (ED.mode === 'move' && id) { ED.sel = id; const n = fl.nodes[id]; ED.drag = { kind: 'node', id, dx: n[0] - p[0], dy: n[1] - p[1], moved: false }; try { $('edMap').setPointerCapture(e.pointerId); } catch (err) {} renderEditor(); }
+  else if (ED.mode === 'add' && !id) {
+    let k = 1; while (fl.nodes['p' + k]) k++;
+    const nid = 'p' + k; fl.nodes[nid] = [p[0], p[1]];
+    if (ED.sel && fl.nodes[ED.sel]) fl.edges.push(ED.sel + '-' + nid);
+    ED.sel = nid; edChanged();
+  } else if (ED.mode === 'add' && id) { ED.sel = id; renderEditor(); }
+  else if (ED.mode === 'connect' && id) {
+    if (!ED.from) { ED.from = id; renderEditor(); return; }
+    if (ED.from !== id) { const i = edgeIdx(fl, ED.from, id); if (i >= 0) { fl.edges.splice(i, 1); toast('Unlinked'); } else { fl.edges.push(ED.from + '-' + id); toast('Linked'); } }
+    ED.from = null; edChanged();
+  } else if (ED.mode === 'delete' && id) {
+    const why = protectedReason(f, id); if (why) { toast(`Can’t delete — ${why}. Move it instead.`); return; }
+    delete fl.nodes[id]; fl.edges = fl.edges.filter((x) => !x.split('-').includes(id)); if (ED.sel === id) ED.sel = null; edChanged();
+  } else if (ED.mode === 'blocks' && (th || tb)) {
+    const b = D.blocks.find((x) => x.id === (th ? th.dataset.bhandle : tb.dataset.block));
+    ED.drag = th ? { kind: 'resize', b } : { kind: 'block', b, dx: b.rect[0] - p[0], dy: b.rect[1] - p[1] };
+    try { $('edMap').setPointerCapture(e.pointerId); } catch (err) {}
+  }
+});
+$('edMap').addEventListener('pointermove', (e) => {
+  const d = ED.drag; if (!d) return; const p = edPoint(e);
+  if (d.kind === 'node') { const n = D.floors[ED.floor].nodes[d.id]; n[0] = p[0] + d.dx; n[1] = p[1] + d.dy; d.moved = true; }
+  if (d.kind === 'block') { const r = d.b.rect, nx = p[0] + d.dx, ny = p[1] + d.dy; D.blocks.filter((x) => x.rect === r || (x.node === d.b.node && x.floor === d.b.floor)).forEach((x) => { x.rect = [nx, ny, r[2], r[3]]; }); d.b = D.blocks.find((x) => x.id === d.b.id); }
+  if (d.kind === 'resize') { const r = d.b.rect, w = Math.max(20, p[0] - r[0]), h = Math.max(20, p[1] - r[1]); D.blocks.filter((x) => x.node === d.b.node && x.floor === d.b.floor).forEach((x) => { x.rect = [r[0], r[1], w, h]; }); d.b = D.blocks.find((x) => x.id === d.b.id); }
+  renderEditor();
+});
+const edUp = () => { if (!ED.drag) return; ED.drag = null; edChanged(); };
+$('edMap').addEventListener('pointerup', edUp); $('edMap').addEventListener('pointercancel', edUp);
+$('edDownload').addEventListener('click', () => {
+  const text = `/*\n * ShelfFinder — Case-Geyer Library data\n * Exported from the in-app map editor on ${new Date().toLocaleString()}.\n * Replace src/library-data.js with this file, then run: python3 build.py\n */\nwindow.SF_DATA = ${JSON.stringify(D, null, 2)};\n`;
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/javascript' })); a.download = 'library-data.js'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  addLog('Map data downloaded');
+});
+$('edReset').addEventListener('click', () => { const o = JSON.parse(ORIGINAL_MAP); D.floors = o.floors; D.blocks = o.blocks; ED.sel = ED.from = null; edChanged(); toast('Map edits undone'); });
+
+// ---------------- Tabs ----------------
+function setTab(t) {
+  S.tab = t;
+  document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('active', b.dataset.tab === t));
+  ['find', 'cart', 'nav', 'ar', 'shelf', 'lib'].forEach((x) => $('tab-' + x).classList.toggle('hidden', x !== t));
+  if (t !== 'ar' && window.speechSynthesis) speechSynthesis.cancel();
+  renderAll(); window.scrollTo(0, 0);
+}
+$('nav').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setTab(b.dataset.tab); });
+function renderAll() { renderFind(); renderCart(); renderNav(); renderAR(); renderShelf(); renderLib(); }
+
+// Deep links: ?book=4  ?call=PR4034  ?cart=1,4,19  &from=L3:wEnt
+const qs = new URLSearchParams(location.search);
+if (qs.get('from') && G[qs.get('from')]) S.start = qs.get('from');
+if (/^https:\/\/script\.google(usercontent)?\.com\//.test(qs.get('live') || '')) S.settings.liveUrl = qs.get('live');
+if (loadReadingList(location.search)) { computeRoute(); setTab('cart'); }
+else if (qs.get('cart')) { S.cart = qs.get('cart').split(',').map(Number).filter((id) => bookById(id)); S.mode = 'trip'; computeRoute(); setTab('cart'); }
+else if (qs.get('book') && bookById(+qs.get('book'))) selectBook(+qs.get('book'));
+else if (qs.get('call')) { const L = C.lookup(qs.get('call'), D); if (L.ok) { S.sel = { kind: 'call', call: qs.get('call').toUpperCase(), block: L.block }; computeRoute(); setTab('nav'); } else renderAll(); }
+else renderAll();
+setSync('Local');
+window.__SF = { upsertLive, refreshCopies, scheduleLive, loadReadingList, ED, renderEditor, selectPlace, S, setTab, selectBook, computeRoute, toggleCart, reportNotHere, showOcr, C };
+})();
+</script>
+</body>
+</html>
