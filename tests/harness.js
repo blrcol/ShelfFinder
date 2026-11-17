@@ -9,7 +9,7 @@ function el(id) {
     classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
     addEventListener(t, f) { (h[t] = h[t] || []).push(f); }, removeEventListener() {},
     querySelector() { return el('_q'); }, querySelectorAll() { return []; }, closest() { return null; },
-    insertAdjacentHTML(p, s) { this.innerHTML += s; }, setAttribute() {}, appendChild() {}, remove() {}, scrollIntoView() {},
+    insertAdjacentHTML(p, s) { this.innerHTML += s; }, setAttribute() {}, appendChild() {}, insertBefore() {}, contains() { return false; }, parentNode: null, remove() {}, scrollIntoView() {},
     play() { return Promise.resolve(); }, setPointerCapture() {}, select() {}, focus() {},
     get firstElementChild() { return el(id + '_child'); }, getContext() { return { drawImage() {} }; },
     click() { (h.click || []).forEach((f) => f({ target: e, stopPropagation() {} })); }
