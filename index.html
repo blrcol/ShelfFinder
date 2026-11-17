@@ -1558,6 +1558,22 @@ const bookById = (id) => S.books.find((b) => b.id === id);
 const nodeName = (id) => { const n = G[id]; return (n && n.label ? n.label : id) + (n ? ' · ' + FLOOR(n.floor).name : ''); };
 const openReports = (b) => (b.reports || []).filter((r) => r.open).length;
 function toast(m) { const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
+// Books from a shared database or an imported file are untrusted: keep only well-formed values,
+// so nothing in them can end up as HTML or attributes (the id goes into data-* attributes unescaped).
+const BOOK_STATUSES = new Set(['shelf', 'lasr', 'online', 'cart', 'transit', 'out', 'away', 'elsewhere', 'missing']);
+function cleanBook(b) {
+  if (!b || typeof b !== 'object' || Array.isArray(b)) return null;
+  const id = Number(b.id); if (!Number.isInteger(id) || id < 0) return null;
+  const out = Object.assign({}, b, { id, reports: (Array.isArray(b.reports) ? b.reports : Object.values(b.reports || {})).filter((r) => r && typeof r === 'object') });
+  if (b.status != null && !BOOK_STATUSES.has(b.status)) out.status = 'away';
+  if (b.mms != null && !/^\d{6,25}$/.test(String(b.mms))) delete out.mms;
+  const L = b.loc;
+  if (L && typeof L === 'object' && /^[A-Za-z]{1,2}$/.test(String(L.face)) && D.ranges.some((r) => r.id === L.range)) {
+    out.loc = { range: L.range, face: String(L.face), section: Math.trunc(+L.section) || 1, shelf: Math.trunc(+L.shelf) || 1 };
+    if (Number.isFinite(+L.pos)) out.loc.pos = +L.pos;
+  } else delete out.loc;
+  return out;
+}
 function addLog(m) { S.log.unshift(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' · ' + m); S.log = S.log.slice(0, 120); }
 function ago(iso) {
   if (!iso) return 'never';
@@ -1587,7 +1603,7 @@ const Sync = {
     setSync('● Live'); S.settings.fbUrl = url; addLog('Connected to shared database');
   },
   apply() {
-    S.books = Object.values(this.tree || {}).filter((b) => b && b.id != null).map((b) => Object.assign(b, { reports: Array.isArray(b.reports) ? b.reports : Object.values(b.reports || {}) })).sort((a, b) => a.id - b.id);
+    S.books = Object.values(this.tree || {}).map(cleanBook).filter(Boolean).sort((a, b) => a.id - b.id);
     if (S.mode === 'trip' || S.sel) computeRoute(true); else renderAll();
   },
   save(b) {
@@ -1652,8 +1668,9 @@ function destFor(b) {
 }
 function livePlace(b) { return b.almaLoc ? C.catalogPlace(b.almaLoc, D) : null; }
 function catalogLink(b) {
-  if (b.mms && S.settings.catalogRecordUrl) return S.settings.catalogRecordUrl.replace('{mms}', encodeURIComponent(b.mms));
-  return S.settings.catalogUrl ? S.settings.catalogUrl.replace('{q}', encodeURIComponent(b.title + ' ' + (b.author || ''))) : '';
+  const u = b.mms && S.settings.catalogRecordUrl ? S.settings.catalogRecordUrl.replace('{mms}', encodeURIComponent(b.mms))
+    : S.settings.catalogUrl ? S.settings.catalogUrl.replace('{q}', encodeURIComponent(b.title + ' ' + (b.author || ''))) : '';
+  return /^https:\/\//i.test(u) ? u : ''; // never a javascript: or other non-web link
 }
 
 // ---------------- Not here ----------------
@@ -1771,7 +1788,7 @@ function renderLive() {
   parkShowMenu(el);
   if (!L.q) { el.innerHTML = ''; placeShowMenu(); return; }
   const allLive = onShelfFirst(L.ids.map(bookById).filter(Boolean)), vis = allLive.filter(isShown), hid = allLive.length - vis.length;
-  let h = `<div class="reshead"><h3>Colgate catalog</h3><span class="muted small">${L.loading ? (L.slow ? 'still searching, the catalog is slow right now…' : 'searching…') : L.error ? '' : `${L.total} result${L.total !== 1 ? 's' : ''}${L.total > vis.length ? `, showing ${vis.length}` : ''}`}${L.loading ? '' : hiddenNote(hid)}</span></div>`;
+  let h = `<div class="reshead"><h3>Colgate catalog</h3><span class="muted small">${L.loading ? (L.slow ? 'still searching, the catalog is slow right now…' : 'searching…') : L.error ? '' : `${Number(L.total) || 0} result${L.total !== 1 ? 's' : ''}${L.total > vis.length ? `, showing ${vis.length}` : ''}`}${L.loading ? '' : hiddenNote(hid)}</span></div>`;
   if (L.error) h += `<div class="card warn"><b>The Colgate catalog isn’t responding right now.</b> ${esc(L.error)} Places, call numbers and ShelfFinder’s own books still work. <button class="cta" type="button" data-retry>Try again</button></div>`;
   h += vis.map(bookCard).join('');
   if (!L.loading && hid && !vis.length) h += `<div class="empty">All ${hid} results here are hidden by your “Show” choice.</div>`;
@@ -2007,7 +2024,7 @@ $('listMake').addEventListener('click', async () => {
   S.listTitle = title;
   $('listOut').innerHTML = `<label class="f">Link (${S.cart.length} books)</label><div class="row"><input id="listUrl" class="grow" readonly value="${esc(url)}"><button class="btn sec" id="listCopy">${ic('copy')}Copy</button></div><div class="qrbox" id="listQr"><span class="muted small">Making QR code…</span></div>`;
   $('listCopy').onclick = () => { const i = $('listUrl'); i.select(); (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => toast('Link copied'), () => { document.execCommand('copy'); toast('Link copied'); }); };
-  try { if (!window.QRCode) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'); $('listQr').innerHTML = ''; new QRCode($('listQr'), { text: url, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.L }); }
+  try { if (!window.QRCode) await loadScript('qrcode'); $('listQr').innerHTML = ''; new QRCode($('listQr'), { text: url, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.L }); }
   catch (e) { $('listQr').innerHTML = '<span class="muted small">QR code needs an internet connection — share the link instead.</span>'; }
   addLog(`Reading list “${title}” shared (${S.cart.length} books)`);
 });
@@ -2289,7 +2306,14 @@ async function enableCompass() {
 $('compassBtn').addEventListener('click', enableCompass);
 
 // ---------------- Floor AR (WebXR, beta: Chrome on Android with ARCore) ----------------
-function loadScript(src) { return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+// Outside libraries, pinned to exact versions with Subresource Integrity: the browser refuses
+// to run a file whose contents don't match the hash (hashes checked against cdnjs/jsDelivr, Nov 2026).
+const LIBS = {
+  qrcode: ['https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js', 'sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA=='],
+  three: ['https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js', 'sha512-dLxUelApnYxpLt6K2iomGngnHO83iUvZytA3YjDUCjT0HDOHKXnVYdf3hU4JjM8uEhxf9nD1/ey98U3t2vZ0qQ=='],
+  tesseract: ['https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js', 'sha256-qOKZGNCYsrBuEBK9rv+0rsBEXF1WVHCQI+C9H0QqgOg=']
+};
+function loadScript(lib) { const [src, integrity] = LIBS[lib]; return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.integrity = integrity; s.crossOrigin = 'anonymous'; s.referrerPolicy = 'no-referrer'; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
 (async () => { try { if (navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')) $('xrBtn').classList.remove('hidden'); } catch (e) {} })();
 async function startFloorAR() {
   if (!S.route) { toast('Plan a route first'); return; }
@@ -2298,7 +2322,7 @@ async function startFloorAR() {
   if (i >= S.steps.length) { toast('No more walking on this floor'); return; }
   const floor = S.steps[i].floor, pts = [];
   for (let k = i; k < S.steps.length && S.steps[k].floor === floor && S.steps[k].type === 'walk'; k++) S.steps[k].pts.forEach((p) => { const l = pts[pts.length - 1]; if (!l || l[0] !== p[0] || l[1] !== p[1]) pts.push(p); });
-  try { if (!window.THREE) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'); } catch (e) { toast('Could not load 3D library (offline?)'); return; }
+  try { if (!window.THREE) await loadScript('three'); } catch (e) { toast('Could not load 3D library (offline?)'); return; }
   const T = window.THREE;
   const session = await navigator.xr.requestSession('immersive-ar', { requiredFeatures: ['local-floor'], optionalFeatures: ['dom-overlay'], domOverlay: { root: $('xrOverlay') } });
   const renderer = new T.WebGLRenderer({ alpha: true, antialias: true });
@@ -2415,7 +2439,7 @@ $('ocrBtn').addEventListener('click', openOCR); $('ocrBtn2').addEventListener('c
 $('ocrClose').addEventListener('click', () => $('ocrModal').classList.add('hidden'));
 async function runOCR(source, width) {
   $('ocrStatus').textContent = 'Loading text recognition…'; $('ocrProg').classList.remove('hidden'); $('ocrProg').firstElementChild.style.width = '5%';
-  try { if (!window.Tesseract) await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'); }
+  try { if (!window.Tesseract) await loadScript('tesseract'); }
   catch (e) { $('ocrStatus').textContent = 'Could not load text recognition (needs internet). Type the call numbers instead.'; $('ocrProg').classList.add('hidden'); return; }
   try {
     const { data } = await Tesseract.recognize(source, 'eng', { logger: (m) => { if (m.status === 'recognizing text') { $('ocrProg').firstElementChild.style.width = Math.round(10 + m.progress * 90) + '%'; $('ocrStatus').textContent = 'Reading labels… ' + Math.round(m.progress * 100) + '%'; } } });
@@ -2516,7 +2540,7 @@ function renderLib() {
   $('heatTabs').innerHTML = hfloors.map((f) => `<button class="ftab ${f === S.heatFloor ? 'on' : ''}" data-hf="${f}">${FLOOR(f).name.replace('Level ', 'L')}</button>`).join('');
   drawMap($('heatMap'), S.heatFloor, { heat: Object.values(heat) });
   const top = Object.entries(S.searches).sort((a, b) => b[1] - a[1]).slice(0, 8);
-  $('topSearch').innerHTML = top.length ? top.map(([q, n]) => `<span class="pill gray" style="margin:2px">${esc(q)} · ${n}</span>`).join('') : '<span class="muted">No searches yet this session.</span>';
+  $('topSearch').innerHTML = top.length ? top.map(([q, n]) => `<span class="pill gray" style="margin:2px">${esc(q)} · ${Number(n) || 0}</span>`).join('') : '<span class="muted">No searches yet this session.</span>';
   // inventory
   const q = $('invQ').value.trim().toLowerCase();
   const rows = LB.filter((b) => !q || (b.title + b.author + b.call).toLowerCase().includes(q)).slice().sort((a, b) => C.compareCall(a.call, b.call)).map((b) => `<tr>
@@ -2623,7 +2647,11 @@ $('importFile').addEventListener('change', (e) => {
   r.onload = () => {
     try {
       const j = JSON.parse(r.result); if (!Array.isArray(j.books)) throw new Error('missing books');
-      S.books = j.books.map((b) => Object.assign({ reports: [] }, b)); if (j.settings) Object.assign(S.settings, j.settings); if (j.log) S.log = j.log; if (j.searches) S.searches = j.searches;
+      S.books = j.books.map(cleanBook).filter(Boolean);
+      // Only the map calibration comes from a file; catalog and database addresses never do.
+      if (j.settings) { if (Number.isFinite(+j.settings.mpp) && +j.settings.mpp > 0) S.settings.mpp = +j.settings.mpp; if (Number.isFinite(+j.settings.north)) S.settings.north = +j.settings.north; }
+      if (Array.isArray(j.log)) S.log = j.log.map(String).slice(0, 120);
+      if (j.searches && typeof j.searches === 'object') S.searches = Object.fromEntries(Object.entries(j.searches).map(([q, n]) => [String(q), Number(n) || 0]));
       G = C.buildGraph(D, S.settings.mpp); S.sel = null; S.cart = []; S.mode = 'single';
       if (Sync.url) S.books.forEach(touch);
       addLog(`Imported ${S.books.length} books`); computeRoute(); toast('Imported');
@@ -2661,7 +2689,7 @@ $('north').addEventListener('change', (e) => { S.settings.north = parseFloat(e.t
 $('printBtn').addEventListener('click', async () => {
   const sheet = $('printSheet');
   sheet.innerHTML = MARKERS.map((m, i) => `<div class="mk"><div style="font-weight:700;font-size:18px">ShelfFinder</div><div class="qr" id="qr${i}"></div><div style="font-size:15px">${esc(m.name)}</div><div style="font-size:11px;color:#666">${esc(m.code)}</div></div>`).join('');
-  try { if (!window.QRCode) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'); MARKERS.forEach((m, i) => new QRCode($('qr' + i), { text: m.code, width: 170, height: 170 })); }
+  try { if (!window.QRCode) await loadScript('qrcode'); MARKERS.forEach((m, i) => new QRCode($('qr' + i), { text: m.code, width: 170, height: 170 })); }
   catch (e) { toast('QR library unavailable offline — printing text codes'); MARKERS.forEach((m, i) => { $('qr' + i).innerHTML = `<div style="font:700 22px monospace;padding:30px;border:2px solid #000">${esc(m.code)}</div>`; }); }
   setTimeout(() => window.print(), 400);
 });
@@ -2789,7 +2817,7 @@ $('edMap').addEventListener('pointermove', (e) => {
 const edUp = () => { if (!ED.drag) return; ED.drag = null; edChanged(); };
 $('edMap').addEventListener('pointerup', edUp); $('edMap').addEventListener('pointercancel', edUp);
 $('edDownload').addEventListener('click', () => {
-  const text = `/*\n * ShelfFinder — Case-Geyer Library data\n * Exported from the in-app map editor on ${new Date().toLocaleString()}.\n * Replace src/library-data.js with this file, then run: python3 build.py\n */\nwindow.SF_DATA = ${JSON.stringify(D, null, 2)};\n`;
+  const text = `/*\n * ShelfFinder — Case-Geyer Library data\n * Exported from the in-app map editor on ${new Date().toLocaleString()}.\n * Replace src/library-data.js with this file, then run: python3 build.py\n */\nwindow.SF_DATA = ${JSON.stringify(D, null, 2).replace(/</g, '\\u003c')};\n`;
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/javascript' })); a.download = 'library-data.js'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   addLog('Map data downloaded');
 });
@@ -2828,7 +2856,8 @@ function renderAll() { renderFind(); renderCart(); renderNav(); renderAR(); rend
 // Deep links: ?book=4  ?call=PR4034  ?cart=1,4,19  &from=L3:wEnt
 const qs = new URLSearchParams(location.search);
 if (qs.get('from') && G[qs.get('from')]) S.start = qs.get('from');
-if (/^https:\/\/script\.google(usercontent)?\.com\//.test(qs.get('live') || '')) S.settings.liveUrl = qs.get('live');
+// (A ?live= link used to switch the catalog proxy. Removed: anyone could publish an Apps Script and
+// send a link that pointed searches at it.)
 if (loadReadingList(location.search)) { computeRoute(); setTab('cart'); }
 else if (qs.get('cart')) { S.cart = qs.get('cart').split(',').map(Number).filter((id) => bookById(id)); S.mode = 'trip'; computeRoute(); setTab('cart'); }
 else if (qs.get('book') && bookById(+qs.get('book'))) selectBook(+qs.get('book'));

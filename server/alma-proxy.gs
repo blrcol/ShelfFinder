@@ -19,7 +19,13 @@
  */
 
 var DEFAULT_BASE = 'https://api-na.hosted.exlibrisgroup.com';
-var MAX_PER_MINUTE = 120; // simple protection for Colgate's daily API limit
+// Limits. Anyone can call this web app (the website needs that), so these keep a misbehaving
+// or malicious client from using up Colgate's shared Ex Libris API quota. Only requests that
+// actually reach Ex Libris count toward the upstream limits; cached answers are free.
+var MAX_REQUESTS_PER_MINUTE = 600;   // all requests, cached or not
+var MAX_UPSTREAM_PER_MINUTE = 120;   // calls to Ex Libris per minute
+var MAX_UPSTREAM_PER_6H = 15000;     // calls to Ex Libris per 6 hours (at most 60,000 a day)
+var MAX_OFFSET = 5000;
 
 function doGet(e) {
   var p = (e && e.parameter) || {};
@@ -43,12 +49,19 @@ function doGet(e) {
 function props_() { return PropertiesService.getScriptProperties(); }
 function json_(obj) { return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON); }
 
-function rateLimit_() {
+function countUp_(bucket, ttl) {
   var cache = CacheService.getScriptCache();
-  var bucket = 'rl_' + Math.floor(Date.now() / 60000);
   var n = Number(cache.get(bucket) || 0) + 1;
-  cache.put(bucket, String(n), 120);
-  if (n > MAX_PER_MINUTE) throw new Error('Too many requests, try again in a minute.');
+  cache.put(bucket, String(n), ttl);
+  return n;
+}
+function rateLimit_() {
+  if (countUp_('rl_' + Math.floor(Date.now() / 60000), 120) > MAX_REQUESTS_PER_MINUTE) throw new Error('Too many requests, try again in a minute.');
+}
+function upstreamLimit_() {
+  var now = Date.now();
+  if (countUp_('up_m_' + Math.floor(now / 60000), 120) > MAX_UPSTREAM_PER_MINUTE) throw new Error('Too many requests, try again in a minute.');
+  if (countUp_('up_6h_' + Math.floor(now / 21600000), 21600) > MAX_UPSTREAM_PER_6H) throw new Error('The catalog connection is resting after heavy use. Try again later.');
 }
 
 function qs_(params) {
@@ -68,6 +81,7 @@ function call_(path, params, ttl, raw) {
   var ck = 'c_' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, url));
   var hit = ttl ? cache.get(ck) : null;
   if (hit) return JSON.parse(hit);
+  upstreamLimit_();
   var res = UrlFetchApp.fetch(url, { method: 'get', muteHttpExceptions: true, headers: { Authorization: 'apikey ' + key, Accept: 'application/json' } });
   var code = res.getResponseCode(), text = res.getContentText();
   if (code !== 200) {
@@ -100,7 +114,7 @@ function search_(q, limit, offset) {
   var lim = Math.max(1, Math.min(25, Number(limit) || 10));
   var r = call_('/primo/v1/search', {
     vid: vid, tab: P.getProperty('PRIMO_TAB') || 'Everything', scope: P.getProperty('PRIMO_SCOPE') || 'MyInst_and_CI',
-    q: 'any,contains,' + q.replace(/,/g, ' '), limit: lim, offset: Math.max(0, Number(offset) || 0), lang: 'en', pcAvailability: 'false'
+    q: 'any,contains,' + q.replace(/,/g, ' '), limit: lim, offset: Math.max(0, Math.min(MAX_OFFSET, Number(offset) || 0)), lang: 'en', pcAvailability: 'false'
   }, 600);
   var docs = (r && r.docs) || [];
   return { total: (r && r.info && r.info.total) || docs.length, records: docs.map(simplifyDoc_).filter(function (d) { return d.title; }) };

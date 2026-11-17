@@ -1,2 +1,6 @@
 .DS_Store
 .claude/
+# Never commit credentials (clasp keeps its Google sign-in in ~/.clasprc.json)
+.clasprc.json
+.env
+*.pem

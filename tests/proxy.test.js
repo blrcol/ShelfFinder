@@ -59,3 +59,14 @@ r = get({ action: 'locations' });
 assert.deepStrictEqual(r.data.locations.map((l) => l.locationCode), ['STACKS', 'LASR']);
 r = get({ action: 'items', mms: '123456789' }); assert.ok(!r.ok && /HTTP 400: nope/.test(r.error));
 console.log('Proxy tests passed');
+
+// Quota protection: only calls that reach Ex Libris count toward the upstream limit;
+// cached answers keep working, new look-ups are refused once the limit is reached.
+{
+  const before = calls.length;
+  for (let i = 0; i < 130; i++) get({ action: 'search', q: 'quota test ' + i });
+  assert.ok(calls.length - before <= 120, 'no more than 120 upstream calls a minute');
+  assert.match(get({ action: 'search', q: 'quota test 999' }).error, /Too many requests/);
+  assert.ok(get({ action: 'search', q: 'pride, prejudice' }).ok, 'a cached search still works at the limit');
+}
+console.log('Proxy quota tests passed');

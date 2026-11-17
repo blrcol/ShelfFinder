@@ -10,6 +10,7 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Actions are pinned to exact commits so a changed tag can't run new code here.
 permissions:
   contents: read
 
@@ -17,9 +18,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: lts/*
 
@@ -44,7 +45,7 @@ jobs:
   container:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Build the image
         run: docker build -t shelffinder .
@@ -55,6 +56,8 @@ jobs:
           for i in $(seq 1 30); do curl -fsS -o /dev/null http://localhost:8080/ && break; sleep 1; done
           diff <(curl -fsS http://localhost:8080/) index.html && echo "page matches index.html"
           curl -fsSI http://localhost:8080/sw.js | grep -i '^cache-control: no-cache'
+          curl -fsSI http://localhost:8080/ | grep -i '^x-frame-options: SAMEORIGIN'
+          curl -fsSI http://localhost:8080/ | grep -i "^content-security-policy: frame-ancestors 'self'"
           curl -fsSI http://localhost:8080/manifest.webmanifest | grep -i '^content-type: application/manifest+json'
           curl -fsS -o /dev/null http://localhost:8080/icons/icon-192.png && echo "icons served"
           test "$(docker exec sf id -u)" != "0" && echo "runs as non-root"
