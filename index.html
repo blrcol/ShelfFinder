@@ -117,6 +117,14 @@ label.f{display:block;font-size:13px;color:var(--ink);margin:12px 0 4px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap);align-items:start}
 .grid2>div:not(.panel){display:flex;flex-direction:column;gap:var(--gap)}
 #findHome>*+*{margin-top:var(--gap)}
+/* Find home: both columns end flush. The floor list spreads its rows; the help boxes share the height
+   and keep their buttons on the bottom edge. */
+#findHome .grid2{align-items:stretch}
+#findHome .grid2>.panel{display:flex;flex-direction:column}
+#findHome .grid2>.panel>.floordir{flex:1;justify-content:space-between}
+#findHome .grid2>div:not(.panel){display:grid;grid-auto-rows:1fr}
+#findHome .grid2>div:not(.panel)>.helpbox{display:flex;flex-direction:column}
+#findHome .helpbox>.btn{margin-top:auto;align-self:flex-start}
 @media(max-width:820px){.grid2{grid-template-columns:1fr}}
 .ph{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
 .ph h2{margin:0;flex:1;min-width:0}
