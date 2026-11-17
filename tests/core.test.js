@@ -26,6 +26,13 @@ assert.ok(r.path.every((p, i) => i === 0 || G[p].floor === G[r.path[i - 1]].floo
 const viaElev = (rt) => rt.path.some((p, i) => i > 0 && G[p].floor !== G[rt.path[i - 1]].floor && G[p].conn.kind === 'elevator');
 for (const k of Object.keys(G)) { const rs = C.route(G, 'L5:ent', k, { avoidElevators: true }); assert.ok(rs && !viaElev(rs), `elevator used to reach ${k}`); assert.ok(rs.cost < 1000, `penalty leaked into cost for ${k}`); }
 { const a = C.route(G, 'L5:ent', 'L1:gov', {}), s = C.route(G, 'L5:ent', 'L1:gov', { avoidElevators: true }); assert.ok(s.cost >= a.cost); }
+// Live catalog locations from the Level 3 floor plan get a real place, not a call-number guess
+{ const at = (name, code) => { const p = C.catalogPlace({ libraryCode: 'case', libraryName: 'Case-Geyer Library', locationCode: code, locationName: name }, D); return p.node || p.status || p.kind; };
+  assert.strictEqual(at('CASE Atlases', 'catl'), 'L3:atl'); assert.strictEqual(at('CASE Atlas Oversize', 'coatl'), 'L3:atl');
+  assert.strictEqual(at('CASE Maps', 'cmap'), 'L3:maps'); assert.strictEqual(at('CASE Microfilm Journals', 'cmfmj'), 'L3:mform');
+  assert.strictEqual(at('CASE Microfiche Docs', 'cmfcg'), 'L3:mform'); assert.strictEqual(at('CASE Indexes', 'cindex'), 'L3:ref');
+  assert.strictEqual(at('CASE Newspapers', 'cnews'), 'L3:per'); assert.strictEqual(at('CASE Main', 'cmain'), 'call');
+  for (const n of ['L3:atl', 'L3:maps', 'L3:mform']) assert.ok(C.route(G, 'L5:ent', n, { avoidElevators: true }), 'no route to ' + n); }
 const mis = C.findMisshelved(D.books.filter((b) => b.loc && b.loc.face === 'W'));
 assert.deepStrictEqual([...mis], [6]);
 console.log('All tests passed');

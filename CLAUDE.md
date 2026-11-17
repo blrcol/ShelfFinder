@@ -57,7 +57,9 @@ docker build -t shelffinder . && docker run --rm -p 8080:8080 shelffinder   # co
 
 Done: search, call-number lookup (Levels 1–4; SuDoc goes to Level 1; Q–T flagged as Cooley), multi-floor routing on the real maps, places (nearest restroom and others), cart trip planner, reading-list links and QR, AR guide (camera, compass, voice, Floor AR beta via WebXR), shelf view, misshelf detection, OCR label reading (Tesseract.js), "Not here" reports, librarian dashboard, scan-to-shelve, CSV import, Firebase sync, QR markers, map editor, live catalog integration, the Colgate-styled Find page.
 
-Live catalog: proxy deployed (Nov 16, 2026) with `PRIMO_VID` = `01COLGATE_INST:01COLGATE_INST` (default tab/scope work) and its URL is in `liveCatalogUrl`. Search, items and locations verified against Colgate's real Alma/Primo; `catalogRules` checked against all 58 real locations (10 still go "by call number": CASE Main plus atlases, maps, microforms, newspapers, indexes — confirm where those really are).
+Live catalog: proxy deployed (Nov 16, 2026) with `PRIMO_VID` = `01COLGATE_INST:01COLGATE_INST` (default tab/scope work) and its URL is in `liveCatalogUrl`. Search, items and locations verified against Colgate's real Alma/Primo; `catalogRules` checked against all 58 real locations. Only CASE Main (the stacks) goes by call number. Atlases, Maps and Microforms (all microfilm/microfiche, including microfilm journals) are places labelled on the Level 3 floor plan (nodes `L3:atl`, `L3:maps`, `L3:mform`, Nov 17, 2026). Indexes → Reference and Newspapers → Current Periodicals are best guesses; ask a librarian to confirm those two and whether the microfiche docs are on Level 3 or with Government Documents on Level 1.
+
+Library approval: the owner got the library's OK to run ShelfFinder (Nov 17, 2026). The footer still says it is a student project, not an official Colgate service, until the library formally adopts it. A replacement Ex Libris key has been requested; the owner pastes it into Script Properties (`ALMA_KEY`) themselves.
 
 Not yet verified against real systems: camera, compass, QR scanning, voice, OCR, Firebase and Floor AR on real phones. Book data in library-data.js is demo data.
 
@@ -67,7 +69,7 @@ Not yet verified against real systems: camera, compass, QR scanning, voice, OCR,
    `export PATH=~/.local/node/bin:$PATH && cd server && clasp push --force && clasp create-deployment -i AKfycbxSTzyb6mNUGsgtwYbaozWuZAjIxZssW_-qDjBeVV6n79pQB3YyHHkDMyeiLU-tyLHhsQ -d "<what changed>"`
    That pushes only `alma-proxy.gs` and `appsscript.json` (see `.claspignore`) and publishes a new version at the same URL. Then check `?action=ping` shows `configuration` and `bibs` as `ok`. Proxy version 2 (Nov 17, 2026) fixed the ping XML check and the `suppressed` flag.
 2. ~~Put the site on GitHub Pages~~ Live at https://blrcol.github.io/ShelfFinder/ (repo github.com/blrcol/ShelfFinder, Pages from `main` / root). To update: this folder (`~/Documents/ShelfFinder/ShelfFinder`) is a git clone of the repo and the Mac is signed in with the GitHub CLI (`gh`, account blrcol), so rebuild, commit and `git push`; Pages republishes in about a minute. Still to do: test it on an iPhone and an Android in the library.
-3. Use Librarian → Load locations to check Colgate's real location codes, then adjust `catalogRules`.
+3. ~~Map Colgate's real location codes~~ Done (see Status); confirm the two best guesses with a librarian.
 4. Calibrate the map with the in-app map editor (metres per unit and north offset), and record the call numbers on the row-end signs.
 5. ~~Restyle the other tabs~~, ~~installable PWA~~, ~~accessibility pass~~ (done Nov 16, 2026; the service worker could not be tested in the preview browser, so confirm install + offline on a real phone). Still manual-only: the map editor needs a mouse or touch screen.
 6. Run a timed student test, then make the demo video and slides.

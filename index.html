@@ -912,11 +912,14 @@ window.SF_DATA = {
         mrr:   [430, 195, 'Martin Reference Reading Room', 'study'], drr: [430, 105, 'Dempsey Reading Room', 'study'],
         wc3:   [222, 262, 'Restrooms · Level 3', 'restroom'],
         pk345: [645, 295, 'Picker Classroom / Lab (345)', 'tech'],
-        media: [440, 470, 'Media Listening & Viewing Room (365)', 'tech']
+        media: [440, 470, 'Media Listening & Viewing Room (365)', 'tech'],
+        // From the labels on Colgate's Level 3 floor plan
+        maps:  [415, 148, 'Maps'], atl: [407, 225, 'Atlases'], mform: [471, 482, 'Microforms']
       },
       edges: ['wEnt-c220', 'c220-c290', 'c290-c412', 'c412-c540', 'c540-c607', 'c607-eEnt', 'c540-itd', 'per-mrr', 'mrr-drr', 'refA-wc3', 'elevE-pk345', 'c412-media',
               'c220-elevW', 'c607-elevE', 'c412-stair', 'elevW-refA', 'refA-ref', 'refA-siloW',
-              'c412-m330', 'm330-per', 'c290-circ', 'elevE-e230', 'e230-siloE']
+              'c412-m330', 'm330-per', 'c290-circ', 'elevE-e230', 'e230-siloE',
+              'per-atl', 'atl-mrr', 'mrr-maps', 'maps-drr', 'media-mform']
     },
 
     L1: {
@@ -992,6 +995,13 @@ window.SF_DATA = {
     { match: 'gov(ernment)? ?doc|sudoc|federal doc|\\| (gdoc|govr|gpam) \\|', node: 'L1:gov', label: 'U.S. Government Documents Collection' },
     // Not on an open shelf (desk, ILL, displays, new books, conservation, withdrawn, unassigned): staff can fetch it
     { match: 'circulation desk|display|spotlight|new books|conservation|faculty review|withdrawn|unassigned|resource sharing', node: 'L3:circ', label: 'Ask at the Circulation Desk' },
+    // Places labelled on the Level 3 floor plan (checked Nov 17, 2026)
+    { match: 'atlas', node: 'L3:atl', label: 'Atlases, by the Martin Reference Reading Room' },
+    { match: '\\bmaps?\\b', node: 'L3:maps', label: 'Maps, between the reading rooms' },
+    { match: 'micro(form|film|fiche)', node: 'L3:mform', label: 'Microforms, beside the Main Stair' },
+    // Best guesses, not on the floor plan: printed indexes with Reference, newspapers with Current Periodicals
+    { match: '\\bindex(es)?\\b', node: 'L3:ref', label: 'Indexes, with Reference A–Z' },
+    { match: 'newspaper', node: 'L3:per', label: 'Newspapers, with Current Periodicals' },
     { match: '\\bref(erence)?\\b', node: 'L3:ref', label: 'Reference A–Z' },
     { match: 'periodical|journal|serial|current issues', node: 'L3:per', label: 'Current Periodicals' },
     { match: 'media|dvd|video|audio|cd-rom', node: 'L3:media', label: 'Media Listening & Viewing Room' }
