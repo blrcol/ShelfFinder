@@ -1,0 +1,9 @@
+# Only build.py, src/, sw.js, manifest.webmanifest, icons/ and docker/ are needed.
+.git
+.github
+.claude
+.DS_Store
+tests
+server
+index.html
+*.md

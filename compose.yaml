@@ -1,0 +1,7 @@
+# docker compose up --build   -> http://localhost:8080
+services:
+  shelffinder:
+    build: .
+    ports:
+      - "8080:8080"
+    restart: unless-stopped

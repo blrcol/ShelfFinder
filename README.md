@@ -5,6 +5,7 @@ A phone app (in the browser) that finds books in Case-Geyer Library, plans the q
 ## Run it
 
 - **On a laptop:** open `index.html`. Everything is in that one file.
+- **In a container:** `docker build -t shelffinder .` then `docker run --rm -p 8080:8080 shelffinder`, and open http://localhost:8080 (or `docker compose up --build`). The image builds `index.html` from `src/` and serves it with a small non-root nginx. For phones, put it behind HTTPS (see below).
 - **On a phone:** the camera, compass, QR scanning, voice and floor AR only work on an HTTPS page. Put this folder on GitHub and turn on GitHub Pages, then open the link on your phone.
 - **Deep links:**
   - `?call=PR4034`

@@ -1,6 +1,7 @@
 # Runs on every push to main (and on pull requests).
 # 1. Rebuilds index.html from src/ and fails if the committed copy is out of date.
 # 2. Runs the three test suites (core logic, catalog proxy, whole app with a fake catalog).
+# 3. Builds the Docker image, runs it and checks the site it serves.
 name: Tests
 
 on:
@@ -39,3 +40,25 @@ jobs:
 
       - name: App + live catalog tests
         run: node tests/app-live.test.js
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the image
+        run: docker build -t shelffinder .
+
+      - name: Run it and check what it serves
+        run: |
+          docker run -d --name sf -p 8080:8080 shelffinder
+          for i in $(seq 1 30); do curl -fsS -o /dev/null http://localhost:8080/ && break; sleep 1; done
+          diff <(curl -fsS http://localhost:8080/) index.html && echo "page matches index.html"
+          curl -fsSI http://localhost:8080/sw.js | grep -i '^cache-control: no-cache'
+          curl -fsSI http://localhost:8080/manifest.webmanifest | grep -i '^content-type: application/manifest+json'
+          curl -fsS -o /dev/null http://localhost:8080/icons/icon-192.png && echo "icons served"
+          test "$(docker exec sf id -u)" != "0" && echo "runs as non-root"
+
+      - name: Container logs
+        if: always()
+        run: docker logs sf || true

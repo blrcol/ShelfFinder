@@ -16,7 +16,10 @@ src/maps.json          floor plan images (base64 JPEG) cropped from Colgate's pu
 build.py               bundles src/ into index.html (one self-contained file; this is the website)
 manifest.webmanifest   PWA manifest; icons/ holds the app icon (icon.svg is the source, PNGs rendered from it)
 sw.js                  offline helper (network-first, same-origin only; bump VERSION to clear old caches)
-.github/workflows/     tests.yml: on every push, checks index.html is rebuilt and runs the three test suites
+.github/workflows/     tests.yml: on every push, checks index.html is rebuilt, runs the three test suites, and builds + checks the container
+Dockerfile             container: stage 1 runs build.py, stage 2 serves the site from nginx-unprivileged on port 8080
+docker/nginx.conf      cache rules (index.html, sw.js, manifest: no-cache), manifest MIME type, nosniff/referrer headers
+compose.yaml           `docker compose up --build` -> http://localhost:8080 (.dockerignore keeps tests, server, git out)
 server/alma-proxy.gs   Google Apps Script proxy that holds the Ex Libris API key (read-only)
 server/SETUP.md        how to deploy the proxy and connect it
 tests/                 core.test.js, proxy.test.js (mocked Apps Script + Ex Libris), app-live.test.js
@@ -31,6 +34,7 @@ Always edit `src/`, then run `python3 build.py`. Never hand-edit index.html.
 python3 build.py
 node tests/core.test.js && node tests/proxy.test.js && node tests/app-live.test.js
 python3 -m http.server 8000      # local preview at http://localhost:8000
+docker build -t shelffinder . && docker run --rm -p 8080:8080 shelffinder   # container at http://localhost:8080 (Docker isn't installed on the owner's Mac; GitHub Actions builds and checks it)
 ```
 
 ## Decisions to keep
