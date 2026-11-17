@@ -34,8 +34,8 @@ body{font-family:var(--ui);font-size:15px;line-height:1.45;color:var(--ink);over
 /* The big background C: a plain Roboto Slab letter (not Colgate's official logo, which needs Colgate
    Communications' approval). A real element so it can use the web font; aria-hidden, behind everything. */
 body{position:relative}
-.bgc{position:absolute;inset:0;overflow:hidden;z-index:-1;pointer-events:none;user-select:none}
-.bigc{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+.bgc{position:fixed;inset:0;overflow:hidden;z-index:-1;pointer-events:none;user-select:none}
+.bigc{position:absolute;top:58%;left:50%;transform:translate(-50%,-50%);
   font-family:"Roboto Slab",Rockwell,"Rockwell Extra Bold","American Typewriter",Georgia,serif;font-weight:800;font-size:124vh;line-height:1;
   background:linear-gradient(135deg,rgba(255,255,255,.32) 0%,rgba(255,217,221,.15) 50%,rgba(255,255,255,.06) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
   -webkit-text-stroke:3px rgba(255,255,255,.42)}
