@@ -721,9 +721,14 @@ h2[tabindex="-1"]:focus,main:focus{outline:none}
   <div class="grid2">
     <div class="panel">
       <div class="ph"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-db"/></svg></span><h2>Shared database</h2></div>
-      <p class="muted small" style="margin-top:0">Connect a Firebase Realtime Database so every phone sees the same locations live. Leave empty to work locally.</p>
-      <div class="row"><input id="fbUrl" class="grow" aria-label="Firebase database URL" placeholder="https://your-project-default-rtdb.firebaseio.com"><button class="btn" id="fbConnect">Connect</button></div>
-      <p class="small" id="fbStatus"></p>
+      <p class="muted small" style="margin-top:0">Sign in to save shelf changes, check-ins and report fixes for every librarian and student. Without signing in, changes stay on this device.</p>
+      <form id="staffForm" class="hidden" autocomplete="on">
+        <div class="field"><label for="staffEmail">Librarian email</label><input id="staffEmail" type="email" autocomplete="username" required></div>
+        <div class="field"><label for="staffPass">Password</label><input id="staffPass" type="password" autocomplete="current-password" required></div>
+        <div class="row" style="margin-top:10px"><button class="btn" type="submit" id="staffSignIn">Sign in</button><button class="btn ghost" type="button" id="staffForgot">Forgot password?</button></div>
+      </form>
+      <div id="staffSignedIn" class="row hidden"><button class="btn sec" type="button" id="staffSignOut">Sign out</button></div>
+      <p class="small" id="fbStatus" role="status"></p>
       <h3>Catalog data</h3>
       <div class="row">
         <label class="btn sec"><svg class="i" aria-hidden="true"><use href="#i-up"/></svg>Import catalog CSV<input type="file" id="csvFile" accept=".csv,text/csv" class="vh"></label>
@@ -820,6 +825,11 @@ window.SF_DATA = {
 
   // Live Colgate catalog: paste the Apps Script web-app URL here (it is not secret;
   // the API key stays inside the script). Leave empty to use demo data only.
+  // Shared database for librarians (Firebase Realtime Database + Email/Password sign-in).
+  // Neither value is secret: database.rules.json decides who may read and write.
+  // Leave both empty to keep every change on the device it was made on.
+  firebase: { databaseURL: '', apiKey: '' },
+
   liveCatalogUrl: 'https://script.google.com/macros/s/AKfycbxSTzyb6mNUGsgtwYbaozWuZAjIxZssW_-qDjBeVV6n79pQB3YyHHkDMyeiLU-tyLHhsQ/exec',
   // "Open in catalog" links (Colgate Primo VE). {mms} = the record's MMS ID, {q} = search text.
   // A book that came from the live catalog opens its own record (holds and requests are there);
@@ -1530,7 +1540,7 @@ const S = {
   cart: [], tripEnd: 'circ', trip: null, stops: [],
   start: D.entrances[0], floorsBy: (() => { try { return localStorage.getItem('shelffinder.floors') === 'elevator' ? 'elevator' : 'stairs'; } catch (e) { return 'stairs'; } })(), mapFloor: null,
   route: null, steps: [], arStep: 0,
-  settings: { mpp: 0.1, north: 0, catalogUrl: D.catalogSearchUrl || '', catalogRecordUrl: D.catalogRecordUrl || '', fbUrl: '', liveUrl: D.liveCatalogUrl || '' },
+  settings: { mpp: 0.1, north: 0, catalogUrl: D.catalogSearchUrl || '', catalogRecordUrl: D.catalogRecordUrl || '', liveUrl: D.liveCatalogUrl || '' },
   heading: null, cam: false, stream: null, voice: false, spoken: null,
   shelfBookId: null, shelfFace: null, facingRange: null,
   searches: {}, heatFloor: 'L2'
@@ -1584,35 +1594,120 @@ function ago(iso) {
 addLog('Loaded demo catalog (' + S.books.length + ' books)');
 
 // ---------------- Shared database (Firebase REST + live stream) ----------------
+// ---------------- Shared database (Firebase) ----------------
+// Who can do what is enforced by database.rules.json, not by this page:
+//   everyone reads; anyone may ADD a "Not here" report; only signed-in librarians listed under
+//   /staff/<uid> may change books or clear reports. Librarians stream everything live; other
+//   people fetch one book's notes when they open it (Sync.peek), so phones never download it all.
+const FB = D.firebase || {};
+const FB_URL = /^https:\/\/[a-z0-9-]+(\.[a-z0-9-]+)*\.(firebaseio\.com|firebasedatabase\.app)$/.test(FB.databaseURL || '') ? FB.databaseURL : '';
+const FB_ON = !!(FB_URL && /^[A-Za-z0-9_-]{20,60}$/.test(FB.apiKey || ''));
+const syncKey = (b) => (b.mms ? 'm' + b.mms : 'b' + b.id);
+const SYNC_KEY_RE = /^(b\d{1,9}|m\d{6,25})$/;
+
+// Librarian sign-in (Firebase Authentication, Email/Password, over its REST API). The tokens live
+// only in memory: closing the page signs out. Accounts are created by the owner in the Firebase
+// console; sign-up is turned off there.
+const Staff = {
+  uid: null, email: '', idToken: null, refreshToken: null, exp: 0, isStaff: false,
+  async call(url, body) {
+    const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
+    if (!r) throw new Error('Check your internet connection.');
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      const m = (j.error && j.error.message) || '';
+      throw new Error(/TOO_MANY/.test(m) ? 'Too many tries. Wait a few minutes and try again.' : /DISABLED/.test(m) ? 'This account has been turned off.' : /INVALID|EMAIL_NOT_FOUND|PASSWORD|MISSING/.test(m) ? 'Wrong email or password.' : 'Couldn’t sign in right now.');
+    }
+    return j;
+  },
+  async signIn(email, password) {
+    const j = await this.call('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + encodeURIComponent(FB.apiKey), { email, password, returnSecureToken: true });
+    Object.assign(this, { uid: j.localId, email: j.email || email, idToken: j.idToken, refreshToken: j.refreshToken, exp: Date.now() + (+j.expiresIn || 3600) * 1000 });
+    const r = await fetch(`${FB_URL}/staff/${encodeURIComponent(this.uid)}.json?auth=${encodeURIComponent(this.idToken)}`).catch(() => null);
+    this.isStaff = !!(r && r.ok && (await r.json().catch(() => null)) === true);
+  },
+  async token() {
+    if (!this.refreshToken) return null;
+    if (Date.now() > this.exp - 120000) {
+      const r = await fetch('https://securetoken.googleapis.com/v1/token?key=' + encodeURIComponent(FB.apiKey), { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(this.refreshToken) }).catch(() => null);
+      if (!r || !r.ok) { this.signOut(); toast('You were signed out. Sign in again to keep saving changes.'); return null; }
+      const j = await r.json(); Object.assign(this, { idToken: j.id_token, refreshToken: j.refresh_token, exp: Date.now() + (+j.expires_in || 3600) * 1000 });
+    }
+    return this.idToken;
+  },
+  async resetPassword(email) { await this.call('https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=' + encodeURIComponent(FB.apiKey), { requestType: 'PASSWORD_RESET', email }); },
+  signOut() { Object.assign(this, { uid: null, email: '', idToken: null, refreshToken: null, exp: 0, isStaff: false }); Sync.disconnect(); renderStaff(); }
+};
+
 const Sync = {
-  url: null, es: null, tree: {},
-  async connect(url) {
-    url = url.trim().replace(/\/+$/, '');
-    if (!/^https:\/\//.test(url)) throw new Error('Use the https:// database URL');
-    const base = url + '/shelffinder/books';
-    const r = await fetch(base + '.json'); if (!r.ok) throw new Error('HTTP ' + r.status + ' — check the URL and database rules');
-    let data = await r.json();
-    if (!data) { data = {}; S.books.forEach((b) => { data['b' + b.id] = b; }); const w = await fetch(base + '.json', { method: 'PUT', body: JSON.stringify(data) }); if (!w.ok) throw new Error('Could not write (rules?)'); }
-    this.url = url; this.tree = data; this.apply();
+  url: null, es: null, tree: {}, reported: new Set(),
+  connect() { // librarians: live stream of the whole /shelffinder tree
+    if (!FB_ON) return;
+    this.url = FB_URL; this.tree = {};
     this.es && this.es.close();
-    this.es = new EventSource(base + '.json');
-    const on = (type) => (e) => { try { const m = JSON.parse(e.data); this.tree = C.applyFbEvent(this.tree, type, m.path, m.data); this.apply(); } catch (err) {} };
+    this.es = new EventSource(FB_URL + '/shelffinder.json');
+    const on = (type) => (e) => { try { const m = JSON.parse(e.data); this.tree = C.applyFbEvent(this.tree, type, m.path, m.data) || {}; this.apply(); } catch (err) {} };
     this.es.addEventListener('put', on('put')); this.es.addEventListener('patch', on('patch'));
     this.es.onerror = () => setSync('Reconnecting…');
     this.es.onopen = () => setSync('● Live');
-    setSync('● Live'); S.settings.fbUrl = url; addLog('Connected to shared database');
+    setSync('Connecting…'); addLog('Connected to the shared database');
+  },
+  // Put the shared notes for one book onto it. Live catalog books only take the librarian's
+  // shelf spot, last-seen time and "missing"; their status otherwise comes from the catalog.
+  overlay(b, raw, reps) {
+    const before = JSON.stringify([b.loc, b.seen, b.status, openReports(b)]);
+    const rec = cleanBook(raw);
+    if (rec) {
+      if (b.live) { if (rec.loc) b.loc = rec.loc; if (rec.seen) b.seen = rec.seen; if (rec.status === 'missing') b.status = 'missing'; }
+      else for (const f of ['title', 'author', 'call', 'isbn', 'status', 'loc', 'seen']) if (rec[f] !== undefined) b[f] = rec[f];
+    }
+    b.reports = Object.values(reps && typeof reps === 'object' ? reps : {}).filter((r) => r && Number.isFinite(+r.at)).map((r) => ({ at: new Date(+r.at).toISOString(), open: true }));
+    return JSON.stringify([b.loc, b.seen, b.status, openReports(b)]) !== before;
   },
   apply() {
-    S.books = Object.values(this.tree || {}).map(cleanBook).filter(Boolean).sort((a, b) => a.id - b.id);
+    const T = this.tree || {}, books = T.books || {}, reps = T.reports || {};
+    for (const [k, raw] of Object.entries(books)) if (/^b\d+$/.test(k) && !S.books.some((b) => syncKey(b) === k)) { const rec = cleanBook(raw); if (rec && !rec.mms) S.books.push(Object.assign(rec, { reports: [] })); }
+    S.books.forEach((b) => this.overlay(b, books[syncKey(b)], reps[syncKey(b)]));
     if (S.mode === 'trip' || S.sel) computeRoute(true); else renderAll();
   },
-  save(b) {
-    if (!this.url) return;
-    fetch(`${this.url}/shelffinder/books/b${b.id}.json`, { method: 'PUT', body: JSON.stringify(b) }).catch(() => toast('Sync failed — change kept on this phone'));
+  async peek(b) { // everyone else: one book's notes, fetched when it is opened
+    if (!FB_ON || this.es || !b || !SYNC_KEY_RE.test(syncKey(b))) return;
+    const k = syncKey(b);
+    try {
+      const [rb, rr] = await Promise.all([fetch(`${FB_URL}/shelffinder/books/${k}.json`), fetch(`${FB_URL}/shelffinder/reports/${k}.json`)]);
+      const rec = rb.ok ? await rb.json() : null, reps = rr.ok ? await rr.json() : null;
+      if (this.overlay(b, rec, reps)) { if (S.mode === 'trip' || S.sel) computeRoute(true); else renderAll(); }
+    } catch (e) { /* offline: keep what we have */ }
+  },
+  async save(b) { // librarians only; the rules refuse anyone else
+    if (!this.es || !Staff.isStaff || !SYNC_KEY_RE.test(syncKey(b))) return;
+    const t = await Staff.token(); if (!t) return;
+    const rec = { id: b.id, title: b.title || '(untitled)', author: b.author || '', call: b.call || '', status: b.status || 'shelf' };
+    if (b.mms) rec.mms = b.mms; if (b.isbn) rec.isbn = b.isbn; if (b.loc) rec.loc = b.loc; if (b.seen) rec.seen = b.seen;
+    const r = await fetch(`${FB_URL}/shelffinder/books/${syncKey(b)}.json?auth=${encodeURIComponent(t)}`, { method: 'PUT', body: JSON.stringify(rec) }).catch(() => null);
+    if (!r || !r.ok) toast('Couldn’t save to the shared database. The change is only on this device.');
+  },
+  async report(b) { // anyone may add a report (timestamp only, set by the server)
+    if (!FB_ON || !SYNC_KEY_RE.test(syncKey(b))) return;
+    await fetch(`${FB_URL}/shelffinder/reports/${syncKey(b)}.json`, { method: 'POST', body: JSON.stringify({ at: { '.sv': 'timestamp' } }) }).catch(() => null);
+  },
+  async clearReports(b) { // librarians only
+    if (!this.es || !Staff.isStaff || !SYNC_KEY_RE.test(syncKey(b))) return;
+    const t = await Staff.token(); if (!t) return;
+    await fetch(`${FB_URL}/shelffinder/reports/${syncKey(b)}.json?auth=${encodeURIComponent(t)}`, { method: 'DELETE' }).catch(() => null);
   },
   disconnect() { this.es && this.es.close(); this.es = null; this.url = null; setSync('Local'); }
 };
-function setSync(t) { $('syncChip').textContent = t; $('fbStatus').textContent = Sync.url ? `Connected: ${Sync.url} · ${t}` : 'Not connected — working locally.'; }
+function setSync(t) { $('syncChip').textContent = t; renderStaff(t); }
+function renderStaff(t) {
+  const st = $('fbStatus'); if (!st) return;
+  $('staffForm').classList.toggle('hidden', !FB_ON || !!Staff.uid);
+  $('staffSignedIn').classList.toggle('hidden', !Staff.uid);
+  if (!FB_ON) st.textContent = 'The shared database isn’t set up yet, so changes stay on this device.';
+  else if (Staff.isStaff) st.textContent = `Signed in as ${Staff.email}. Changes are saved for everyone · ${t || $('syncChip').textContent}`;
+  else if (Staff.uid) st.textContent = `Signed in as ${Staff.email}, but this account isn’t on the staff list yet, so changes stay on this device. Ask the ShelfFinder owner to add staff ID ${Staff.uid}.`;
+  else st.textContent = 'Not signed in. Changes stay on this device.';
+}
 function touch(b) { Sync.save(b); }
 
 // Markers: entrances, every connector landing, every range face
@@ -1676,12 +1771,14 @@ function catalogLink(b) {
 // ---------------- Not here ----------------
 function reportNotHere(id) {
   const b = bookById(id); if (!b) return;
+  if (Sync.reported.has(syncKey(b))) { toast('Thanks, this one is already reported.'); return; }
+  Sync.reported.add(syncKey(b));
   b.reports = b.reports || []; b.reports.push({ at: new Date().toISOString(), open: true });
-  addLog(`Patron reported “${b.title}” not at ${locLine(b)}`); touch(b);
+  addLog(`Patron reported “${b.title}” not at ${locLine(b)}`); Sync.report(b);
   toast('Thanks — a librarian will check. Also look on nearby shelves and the return cart at the Circulation Desk.');
   renderAll();
 }
-function closeReports(b) { (b.reports || []).forEach((r) => { r.open = false; }); }
+function closeReports(b) { if (openReports(b)) Sync.clearReports(b); (b.reports || []).forEach((r) => { r.open = false; }); }
 
 // ---------------- Cart ----------------
 function inCart(id) { return S.cart.includes(id); }
@@ -1733,6 +1830,7 @@ function upsertLive(rec) {
   b.almaLoc = { libraryCode: rec.libraryCode, libraryName: rec.libraryName, locationCode: rec.locationCode, locationName: rec.locationName };
   if (!b.call && call) b.call = call;
   if (!b.copies) b.status = (!call && rec.online) ? 'online' : applyPlaceStatus(b, C.statusFromAvailability(rec.availability));
+  if (Sync.es) Sync.overlay(b, (Sync.tree.books || {})[syncKey(b)], (Sync.tree.reports || {})[syncKey(b)]);
   return b;
 }
 async function refreshCopies(b) {
@@ -1929,6 +2027,7 @@ $('callCard').addEventListener('click', (e) => {
 });
 function selectBook(id) {
   S.mode = 'single'; S.sel = { kind: 'book', id };
+  Sync.peek(bookById(id));
   S.shelfFace = null; S.facingRange = null; S.shelfBookId = id;
   computeRoute(); setTab('nav');
   const b = bookById(id);
@@ -2558,7 +2657,6 @@ function renderLib() {
   $('log').innerHTML = S.log.map((l) => `<div>${esc(l)}</div>`).join('');
   $('mpp').value = S.settings.mpp; $('north').value = S.settings.north;
   if (document.activeElement !== $('catUrl')) $('catUrl').value = S.settings.catalogUrl;
-  if (document.activeElement !== $('fbUrl')) $('fbUrl').value = S.settings.fbUrl || '';
   if (document.activeElement !== $('liveUrl')) $('liveUrl').value = S.settings.liveUrl || '';
   $('deepLink').value = location.href.split(/[?#]/)[0] + '?call={CALL NUMBER}';
   setSync(Sync.url ? $('syncChip').textContent : 'Local');
@@ -2653,7 +2751,7 @@ $('importFile').addEventListener('change', (e) => {
       if (Array.isArray(j.log)) S.log = j.log.map(String).slice(0, 120);
       if (j.searches && typeof j.searches === 'object') S.searches = Object.fromEntries(Object.entries(j.searches).map(([q, n]) => [String(q), Number(n) || 0]));
       G = C.buildGraph(D, S.settings.mpp); S.sel = null; S.cart = []; S.mode = 'single';
-      if (Sync.url) S.books.forEach(touch);
+      if (Sync.es) S.books.forEach(touch);
       addLog(`Imported ${S.books.length} books`); computeRoute(); toast('Imported');
     } catch (err) { toast('Could not import: ' + err.message); }
   };
@@ -2676,13 +2774,23 @@ $('csvFile').addEventListener('change', (e) => {
   };
   r.readAsText(f); e.target.value = '';
 });
-$('fbConnect').addEventListener('click', async () => {
-  const u = $('fbUrl').value.trim();
-  if (!u) { Sync.disconnect(); S.settings.fbUrl = ''; renderLib(); return; }
-  $('fbStatus').textContent = 'Connecting…';
-  try { await Sync.connect(u); toast('Live sync on — every phone now shares the same locations'); }
-  catch (e) { $('fbStatus').textContent = 'Could not connect: ' + e.message; }
+$('staffForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = $('staffEmail').value.trim(), pass = $('staffPass').value;
+  $('staffSignIn').disabled = true; $('fbStatus').textContent = 'Signing in…';
+  try {
+    await Staff.signIn(email, pass); $('staffPass').value = '';
+    if (Staff.isStaff) { Sync.connect(); toast('Signed in. Your changes now save for everyone.'); } else renderStaff();
+  } catch (err) { $('fbStatus').textContent = err.message; }
+  finally { $('staffSignIn').disabled = false; }
 });
+$('staffForgot').addEventListener('click', async () => {
+  const email = $('staffEmail').value.trim();
+  if (!email) { $('fbStatus').textContent = 'Type your email first, then tap Forgot password.'; $('staffEmail').focus(); return; }
+  try { await Staff.resetPassword(email); } catch (err) { /* same answer either way, so it doesn't reveal which emails have accounts */ }
+  $('fbStatus').textContent = `If ${email} has a librarian account, a reset link is on its way.`;
+});
+$('staffSignOut').addEventListener('click', () => { Staff.signOut(); toast('Signed out'); });
 $('catUrl').addEventListener('change', (e) => { S.settings.catalogUrl = e.target.value.trim(); renderAll(); });
 $('mpp').addEventListener('change', (e) => { const v = parseFloat(e.target.value); if (v > 0) { S.settings.mpp = v; G = C.buildGraph(D, v); computeRoute(true); } });
 $('north').addEventListener('change', (e) => { S.settings.north = parseFloat(e.target.value) || 0; renderAR(); });

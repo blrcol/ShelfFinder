@@ -35,12 +35,9 @@ Go to Librarian → Map editor, pick a floor, then use these modes:
 
 The editor warns you if any point can't be reached. When you're done, tap **Download library-data.js**, replace `src/library-data.js` with it, and run `python3 build.py`.
 
-## Shared database (live sync between phones)
+## Shared database and librarian sign-in
 
-1. Create a free Firebase project at console.firebase.google.com.
-2. Go to Build → Realtime Database → Create database.
-3. Paste the database URL into Librarian → Shared database → Connect. The first phone to connect uploads the current catalog. After that, every change on any phone (shelving, check-outs, "Not here" reports) appears on the others within about a second.
-4. For the class demo you can use test-mode rules. Lock the rules down before any real use, so that only librarians can write.
+Librarians sign in (Librarian tab → Shared database) so their changes save for everyone: shelf spots from scans, check-ins, "missing", fixing "Not here" reports and catalog imports. Students never sign in; their phones read the librarians' notes for a book when they open it, and anyone can add a "Not here" report. The database rules in `firebase/database.rules.json` enforce this, so it doesn't depend on the website. Setup, step by step: [firebase/SETUP.md](firebase/SETUP.md).
 
 ## Live Colgate catalog
 

@@ -1,0 +1,57 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "staff": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
+
+    "shelffinder": {
+      ".read": true,
+
+      "books": {
+        ".write": "auth != null && root.child('staff').child(auth.uid).val() === true",
+        "$key": {
+          ".validate": "$key.matches(/^(b[0-9]{1,9}|m[0-9]{6,25})$/) && newData.hasChildren(['id', 'title', 'status']) && newData.child('id').isNumber() && newData.child('title').isString() && newData.child('title').val().length <= 500 && newData.child('status').val().matches(/^(shelf|lasr|online|cart|transit|out|away|elsewhere|missing)$/)",
+          "author": { ".validate": "newData.isString() && newData.val().length <= 300" },
+          "call": { ".validate": "newData.isString() && newData.val().length <= 100" },
+          "isbn": { ".validate": "newData.isString() && newData.val().length <= 20" },
+          "mms": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{6,25}$/)" },
+          "seen": { ".validate": "newData.isString() && newData.val().length <= 40" },
+          "loc": {
+            ".validate": "newData.hasChildren(['range', 'face', 'section', 'shelf'])",
+            "range": { ".validate": "newData.isString() && newData.val().length <= 40" },
+            "face": { ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z]{1,2}$/)" },
+            "section": { ".validate": "newData.isNumber()" },
+            "shelf": { ".validate": "newData.isNumber()" },
+            "pos": { ".validate": "newData.isNumber()" },
+            "$other": { ".validate": false }
+          },
+          "id": { ".validate": true },
+          "title": { ".validate": true },
+          "status": { ".validate": true },
+          "$other": { ".validate": false }
+        }
+      },
+
+      "reports": {
+        "$key": {
+          ".write": "auth != null && root.child('staff').child(auth.uid).val() === true && !newData.exists()",
+          ".validate": "$key.matches(/^(b[0-9]{1,9}|m[0-9]{6,25})$/)",
+          "$report": {
+            ".write": "!data.exists() && newData.exists()",
+            ".validate": "newData.hasChildren(['at']) && newData.child('at').val() === now",
+            "at": { ".validate": "newData.isNumber()" },
+            "$other": { ".validate": false }
+          }
+        }
+      },
+
+      "$other": { ".validate": false }
+    }
+  }
+}

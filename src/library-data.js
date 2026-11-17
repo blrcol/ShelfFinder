@@ -14,6 +14,11 @@ window.SF_DATA = {
 
   // Live Colgate catalog: paste the Apps Script web-app URL here (it is not secret;
   // the API key stays inside the script). Leave empty to use demo data only.
+  // Shared database for librarians (Firebase Realtime Database + Email/Password sign-in).
+  // Neither value is secret: database.rules.json decides who may read and write.
+  // Leave both empty to keep every change on the device it was made on.
+  firebase: { databaseURL: '', apiKey: '' },
+
   liveCatalogUrl: 'https://script.google.com/macros/s/AKfycbxSTzyb6mNUGsgtwYbaozWuZAjIxZssW_-qDjBeVV6n79pQB3YyHHkDMyeiLU-tyLHhsQ/exec',
   // "Open in catalog" links (Colgate Primo VE). {mms} = the record's MMS ID, {q} = search text.
   // A book that came from the live catalog opens its own record (holds and requests are there);
