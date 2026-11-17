@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#821019">
+<meta name="description" content="Find books in Case-Geyer Library, plan the quickest route to collect them, and get walked to the shelf.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ShelfFinder">
 <title>ShelfFinder · Case-Geyer Library</title>
 <style>
 :root{--bg:#f4f4f5;--panel:#fff;--ink:#1f1f22;--muted:#5A646E;--accent:#E10028;--teal:#5A646E;--line:#D2D4D6;--wood:#8b5e3c;--wood2:#5e3a22;--gold:#ffd54a;--maroon:#821019;--maroon-d:#411217;--ok:#1f7a3d;--serif:Georgia,'Times New Roman',serif}
@@ -43,7 +51,7 @@ input[type=search]{width:100%;font-size:16px;padding:12px}
 .grow{flex:1}
 .hidden{display:none!important}
 .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:#e5f2e9;color:var(--ok);font-weight:700;white-space:nowrap}
-.pill.out{background:#f3e3e3;color:#9b3b3b}.pill.cart{background:#fbf1dc;color:#8a6312}.pill.lasr{background:#e9e6f6;color:#4c3f8f}.pill.warn{background:#fdeee6;color:var(--accent)}.pill.gray{background:#eee;color:#666}.pill.miss{background:#1f1f22;color:#fff}
+.pill.out{background:#f3e3e3;color:#9b3b3b}.pill.cart{background:#fbf1dc;color:#8a6312}.pill.lasr{background:#e9e6f6;color:#4c3f8f}.pill.warn{background:#fdeee6;color:#b3001f}.pill.gray{background:#eee;color:#666}.pill.miss{background:#1f1f22;color:#fff}
 .list{display:flex;flex-direction:column;gap:6px;margin-top:10px}
 .item{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;display:flex;gap:12px;align-items:center;transition:border-color .15s,box-shadow .15s}
 .item:hover{border-color:#b9bcc0;box-shadow:0 4px 14px #0000000f}
@@ -173,7 +181,7 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
 .floorrow .lv small{display:block;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:10px;letter-spacing:1px;color:var(--muted);font-weight:700;margin-bottom:2px}
 .rchip.word{font-family:inherit}
 .floorrow p{margin:0 0 6px;font-size:13px;color:var(--muted)}
-.rchip{border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 8px;font-size:12px;font-weight:700;color:var(--ink);cursor:pointer;margin:0 4px 4px 0;font-family:ui-monospace,Menlo,monospace}
+.rchip{border:1px solid var(--line);background:#fff;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:700;color:var(--ink);cursor:pointer;margin:0 4px 4px 0;font-family:ui-monospace,Menlo,monospace}
 .rchip:hover{border-color:var(--maroon);color:var(--maroon)}
 .helpbox{background:#fff;border:1px solid var(--line);border-left:4px solid var(--maroon);border-radius:12px;padding:16px;margin-bottom:12px}
 .helpbox h4{margin:0 0 4px;font-family:var(--serif);font-size:16px}
@@ -263,6 +271,13 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
 .trip li .n .i{width:14px;height:14px;stroke-width:2.5}
 .bubble .i{width:12px;height:12px;vertical-align:-2px;margin-right:3px}
 .empty .i{width:20px;height:20px;vertical-align:-5px}
+/* ---- accessibility ---- */
+.vh{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+label.btn:focus-within,[tabindex]:focus-visible{outline:3px solid #F0AA00;outline-offset:2px}
+h2[tabindex="-1"]:focus{outline:none}
+.skip{position:absolute;left:8px;top:-64px;z-index:400;background:#fff;color:var(--maroon);font-weight:700;padding:10px 14px;border-radius:8px;box-shadow:0 4px 14px #0004}
+.skip:focus{top:8px}
+@media (prefers-reduced-motion: reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 #printSheet{display:none}
 @media print{
   body>*:not(#printSheet){display:none!important}
@@ -313,12 +328,13 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5V5a1.5 1.5 0 00-1.5-1.5H5A1.5 1.5 0 003.5 5v9A1.5 1.5 0 005 15.5h3.5"/></symbol>
   <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4.5 18a9 9 0 1115 0"/><path d="M12 13l4-4"/></symbol>
 </svg>
+<a class="skip" href="#main">Skip to content</a>
 <header>
   <div><h1>ShelfFinder</h1><div class="sub" id="libName"></div></div>
   <span id="syncChip">Local</span>
 </header>
-<nav id="nav">
-  <button data-tab="find" class="active">Find</button>
+<nav id="nav" aria-label="Sections">
+  <button data-tab="find" class="active" aria-current="page">Find</button>
   <button data-tab="cart">Cart<span class="badge hidden" id="cartBadge"></span></button>
   <button data-tab="nav">Route</button>
   <button data-tab="ar">AR Guide</button>
@@ -326,7 +342,7 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
   <button data-tab="lib">Librarian<span class="badge hidden" id="repBadge"></span></button>
 </nav>
 
-<main>
+<main id="main" tabindex="-1">
 <!-- ============ FIND ============ -->
 <section id="tab-find">
   <div class="hero">
@@ -334,7 +350,7 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
     <h2>Find it on the shelf.</h2>
     <p>Search for a book, a call number or a room. ShelfFinder shows where it is right now and walks you there.</p>
     <div class="searchbox">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <input id="q" type="search" aria-label="Search books, call numbers and rooms" placeholder="Search by title, author, call number or room" autocomplete="off" enterkeyhint="search">
       <button class="qclear hidden" id="qClear" aria-label="Clear search">×</button>
     </div>
@@ -354,6 +370,7 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
         <div class="helpbox"><h4>Getting several books?</h4><p>Add them to your cart and ShelfFinder plans the quickest route to collect them all, ending at the Circulation Desk.</p><button class="btn outline" data-goto="cart">Open my cart</button></div>
         <div class="helpbox"><h4>Already in the library?</h4><p>Scan the ShelfFinder code on the nearest stairway or elevator, and directions start from where you’re standing.</p><button class="btn outline" id="homeScan">Scan a code</button></div>
         <div class="helpbox"><h4>Need a hand?</h4><p>Staff at the Circulation Desk on Level 3 can help you find anything.</p><button class="btn outline" data-place="L3:circ">Directions to the desk</button></div>
+        <div class="helpbox hidden" id="installBox"><h4>Use it like an app</h4><p id="installText"></p><button class="btn outline hidden" id="installBtn">Install ShelfFinder</button></div>
       </div>
     </div>
   </div>
@@ -361,7 +378,7 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
   <div id="findResults" class="hidden">
     <div id="callCard"></div>
     <div id="resPlaces"></div>
-    <div id="resHead"></div>
+    <div id="resHead" aria-live="polite"></div><div id="srStatus" class="vh" role="status" aria-live="polite"></div>
     <div class="list" id="results"></div>
     <div class="list" id="liveResults"></div>
   </div>
@@ -397,7 +414,7 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
       <div class="helpbox" id="listPanel">
         <h4>Share as a reading list</h4>
         <p>Professors: build a cart, give it a name, and share the link or QR code. Students who open it get the same books and the quickest route.</p>
-        <div class="row"><input id="listTitle" class="grow" placeholder="e.g. HIST 101 · Week 5 readings"><button class="btn outline" id="listMake"><svg class="i"><use href="#i-link"/></svg>Create link &amp; QR</button></div>
+        <div class="row"><input id="listTitle" class="grow" aria-label="Reading list name" placeholder="e.g. HIST 101 · Week 5 readings"><button class="btn outline" id="listMake"><svg class="i" aria-hidden="true"><use href="#i-link"/></svg>Create link &amp; QR</button></div>
         <div id="listOut"></div>
       </div>
     </div>
@@ -410,7 +427,7 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
   <div class="panel">
     <div class="row" style="gap:10px 14px">
       <div class="field grow" style="margin-top:0;min-width:240px"><label for="startSel">Start</label><select id="startSel"></select></div>
-      <button class="btn sec" id="scanStart"><svg class="i"><use href="#i-scan"/></svg>Scan marker</button>
+      <button class="btn sec" id="scanStart"><svg class="i" aria-hidden="true"><use href="#i-scan"/></svg>Scan marker</button>
     </div>
     <div class="row" style="margin-top:12px">
       <label class="check"><input type="checkbox" id="avoidStairs"> Avoid stairs (elevators only)</label>
@@ -422,7 +439,7 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
     <div class="panel">
       <div class="ph"><h2>Map</h2><span class="note" id="routeSummary"></span></div>
       <div class="floor-tabs" id="floorTabs" style="margin-top:0"></div>
-      <div class="mapwrap"><svg id="map"></svg></div>
+      <div class="mapwrap"><svg id="map" role="img" aria-label="Floor map with your route. The same route is written out step by step under Directions."></svg></div>
     </div>
     <div class="panel">
       <div class="ph"><h2>Directions</h2></div>
@@ -438,23 +455,23 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
     <h2 id="arTitle">AR guide</h2>
     <p>Hold your phone up and follow the arrow. Scan the marker on any stair landing to re-route from there.</p>
     <div class="acts">
-      <button class="hbtn" id="camBtn"><svg class="i"><use href="#i-cam"/></svg>Camera</button>
-      <button class="hbtn" id="compassBtn"><svg class="i"><use href="#i-compass"/></svg>Compass</button>
-      <button class="hbtn" id="voiceBtn"><svg class="i"><use href="#i-vol"/></svg>Voice</button>
-      <button class="hbtn" id="arScan"><svg class="i"><use href="#i-scan"/></svg>Scan</button>
-      <button class="hbtn hidden" id="xrBtn"><svg class="i"><use href="#i-xr"/></svg>Floor AR</button>
+      <button class="hbtn" id="camBtn"><svg class="i" aria-hidden="true"><use href="#i-cam"/></svg>Camera</button>
+      <button class="hbtn" id="compassBtn"><svg class="i" aria-hidden="true"><use href="#i-compass"/></svg>Compass</button>
+      <button class="hbtn" id="voiceBtn"><svg class="i" aria-hidden="true"><use href="#i-vol"/></svg>Voice</button>
+      <button class="hbtn" id="arScan"><svg class="i" aria-hidden="true"><use href="#i-scan"/></svg>Scan</button>
+      <button class="hbtn hidden" id="xrBtn"><svg class="i" aria-hidden="true"><use href="#i-xr"/></svg>Floor AR</button>
     </div>
   </div>
   <div class="stagewrap">
     <div class="stage sim" id="arStage">
       <video id="arVideo" playsinline muted class="hidden"></video>
-      <svg class="floorpath" viewBox="0 0 100 50" preserveAspectRatio="none" id="floorPath"></svg>
+      <svg class="floorpath" viewBox="0 0 100 50" preserveAspectRatio="none" id="floorPath" aria-hidden="true"></svg>
       <div class="hud top"><span class="chip" id="arFloor"></span><span class="chip" id="arProg"></span></div>
-      <div class="guide" id="guide"></div>
-      <div class="inset"><svg id="inset"></svg></div>
+      <div class="guide" id="guide" aria-live="polite"></div>
+      <div class="inset"><svg id="inset" aria-hidden="true"></svg></div>
       <div class="hud bottom" style="pointer-events:auto">
-        <button class="btn sec" id="arPrev"><svg class="i"><use href="#i-left"/></svg>Back</button>
-        <button class="btn" id="arNext">Next<svg class="i"><use href="#i-right"/></svg></button>
+        <button class="btn sec" id="arPrev"><svg class="i" aria-hidden="true"><use href="#i-left"/></svg>Back</button>
+        <button class="btn" id="arNext">Next<svg class="i" aria-hidden="true"><use href="#i-right"/></svg></button>
       </div>
     </div>
     <p class="muted small" id="arNote" style="margin:10px 4px 2px"></p>
@@ -468,9 +485,9 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
     <h2 id="shelfTitle">Shelf view</h2>
     <p>Your book glows on the shelf. Books that look out of call-number order are flagged.</p>
     <div class="acts">
-      <button class="hbtn" id="camBtn2"><svg class="i"><use href="#i-cam"/></svg>Camera</button>
-      <button class="hbtn" id="shelfScan"><svg class="i"><use href="#i-scan"/></svg>Scan range</button>
-      <button class="hbtn solid" id="ocrBtn"><svg class="i"><use href="#i-labels"/></svg>Read shelf labels</button>
+      <button class="hbtn" id="camBtn2"><svg class="i" aria-hidden="true"><use href="#i-cam"/></svg>Camera</button>
+      <button class="hbtn" id="shelfScan"><svg class="i" aria-hidden="true"><use href="#i-scan"/></svg>Scan range</button>
+      <button class="hbtn solid" id="ocrBtn"><svg class="i" aria-hidden="true"><use href="#i-labels"/></svg>Read shelf labels</button>
     </div>
   </div>
   <div class="stagewrap">
@@ -491,8 +508,8 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
     <h2>Keep every location accurate.</h2>
     <p>See what needs checking, confirm where books are, edit the map and manage the catalog.</p>
     <div class="acts">
-      <button class="hbtn solid" id="shelveBtn"><svg class="i"><use href="#i-scan"/></svg>Scan to shelve</button>
-      <button class="hbtn" id="ocrBtn2"><svg class="i"><use href="#i-labels"/></svg>Read a whole shelf</button>
+      <button class="hbtn solid" id="shelveBtn"><svg class="i" aria-hidden="true"><use href="#i-scan"/></svg>Scan to shelve</button>
+      <button class="hbtn" id="ocrBtn2"><svg class="i" aria-hidden="true"><use href="#i-labels"/></svg>Read a whole shelf</button>
     </div>
   </div>
   <div class="kpis" id="kpis" style="margin-bottom:12px"></div>
@@ -503,7 +520,7 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
     </div>
     <div class="panel">
       <div class="ph"><h2>Problem spots</h2><div class="row" id="heatTabs" style="gap:6px"></div></div>
-      <div class="mapwrap"><svg id="heatMap"></svg></div>
+      <div class="mapwrap"><svg id="heatMap" role="img" aria-label="Map of problem spots on this floor. The same items are listed under Needs attention."></svg></div>
       <p class="muted small">Darker = more “Not here” reports, misshelved books, or locations not confirmed in 30+ days.</p>
       <h3>Top searches</h3><div id="topSearch" class="small"></div>
     </div>
@@ -513,7 +530,7 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
   <div class="panel">
     <div class="ph"><h2>Inventory</h2>
       <input id="invQ" type="search" placeholder="Filter…" aria-label="Filter inventory" style="width:180px;font-size:14px;padding:8px">
-      <button class="btn sec sm" id="addBtn"><svg class="i"><use href="#i-plus"/></svg>Add book</button></div>
+      <button class="btn sec sm" id="addBtn"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg>Add book</button></div>
     <div style="overflow:auto"><table id="inv"></table></div>
   </div>
 
@@ -521,36 +538,36 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
   <div class="panel">
     <div class="ph"><h2>Map editor</h2><div class="row" id="edFloors" style="gap:6px"></div></div>
     <div class="row edmodes" id="edModes" style="gap:6px">
-      <button class="ftab" data-mode="move"><svg class="i"><use href="#i-move"/></svg>Move points</button>
-      <button class="ftab" data-mode="add"><svg class="i"><use href="#i-plus"/></svg>Add point</button>
-      <button class="ftab" data-mode="connect"><svg class="i"><use href="#i-link"/></svg>Connect / unlink</button>
-      <button class="ftab" data-mode="delete"><svg class="i"><use href="#i-trash"/></svg>Delete point</button>
-      <button class="ftab" data-mode="blocks"><svg class="i"><use href="#i-rect"/></svg>Move / resize stacks</button>
+      <button class="ftab" data-mode="move"><svg class="i" aria-hidden="true"><use href="#i-move"/></svg>Move points</button>
+      <button class="ftab" data-mode="add"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg>Add point</button>
+      <button class="ftab" data-mode="connect"><svg class="i" aria-hidden="true"><use href="#i-link"/></svg>Connect / unlink</button>
+      <button class="ftab" data-mode="delete"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg>Delete point</button>
+      <button class="ftab" data-mode="blocks"><svg class="i" aria-hidden="true"><use href="#i-rect"/></svg>Move / resize stacks</button>
     </div>
     <p class="muted small" id="edHelp"></p>
-    <div class="mapwrap"><svg id="edMap"></svg></div>
+    <div class="mapwrap"><svg id="edMap" role="img" aria-label="Map editor. Editing points needs a mouse or touch screen."></svg></div>
     <div id="edInspector"></div>
-    <div class="row" style="margin-top:10px"><button class="btn" id="edDownload"><svg class="i"><use href="#i-down"/></svg>Download library-data.js</button><button class="btn sec" id="edReset">Undo all map edits</button><span class="small grow" id="edCheck" style="text-align:right"></span></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="edDownload"><svg class="i" aria-hidden="true"><use href="#i-down"/></svg>Download library-data.js</button><button class="btn sec" id="edReset">Undo all map edits</button><span class="small grow" id="edCheck" style="text-align:right"></span></div>
   </div>
 
   <h3 class="sec-h grp">Connections &amp; setup</h3>
   <div class="panel">
-    <div class="ph"><span class="ic"><svg class="i"><use href="#i-live"/></svg></span><h2>Live Colgate catalog</h2></div>
+    <div class="ph"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-live"/></svg></span><h2>Live Colgate catalog</h2></div>
     <p class="muted small" style="margin:0 0 10px">Paste the web-app URL of the ShelfFinder catalog proxy (the Google Apps Script that holds the API key — see server/SETUP.md). The API key itself never goes in the app.</p>
-    <div class="row"><input id="liveUrl" class="grow" placeholder="https://script.google.com/macros/s/…/exec"><button class="btn" id="liveSave">Connect</button><button class="btn sec" id="liveTest">Test</button><button class="btn sec" id="liveLocs">Load locations</button></div>
+    <div class="row"><input id="liveUrl" class="grow" aria-label="Catalog proxy web app URL" placeholder="https://script.google.com/macros/s/…/exec"><button class="btn" id="liveSave">Connect</button><button class="btn sec" id="liveTest">Test</button><button class="btn sec" id="liveLocs">Load locations</button></div>
     <div id="liveOut"></div>
   </div>
   <div class="grid2">
     <div class="panel">
-      <div class="ph"><span class="ic"><svg class="i"><use href="#i-db"/></svg></span><h2>Shared database</h2></div>
+      <div class="ph"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-db"/></svg></span><h2>Shared database</h2></div>
       <p class="muted small" style="margin-top:0">Connect a Firebase Realtime Database so every phone sees the same locations live. Leave empty to work locally.</p>
-      <div class="row"><input id="fbUrl" class="grow" placeholder="https://your-project-default-rtdb.firebaseio.com"><button class="btn" id="fbConnect">Connect</button></div>
+      <div class="row"><input id="fbUrl" class="grow" aria-label="Firebase database URL" placeholder="https://your-project-default-rtdb.firebaseio.com"><button class="btn" id="fbConnect">Connect</button></div>
       <p class="small" id="fbStatus"></p>
       <h3>Catalog data</h3>
       <div class="row">
-        <label class="btn sec"><svg class="i"><use href="#i-up"/></svg>Import catalog CSV<input type="file" id="csvFile" accept=".csv,text/csv" class="hidden"></label>
-        <button class="btn sec" id="exportBtn"><svg class="i"><use href="#i-down"/></svg>Export JSON</button>
-        <label class="btn sec"><svg class="i"><use href="#i-up"/></svg>Import JSON<input type="file" id="importFile" accept="application/json" class="hidden"></label>
+        <label class="btn sec"><svg class="i" aria-hidden="true"><use href="#i-up"/></svg>Import catalog CSV<input type="file" id="csvFile" accept=".csv,text/csv" class="vh"></label>
+        <button class="btn sec" id="exportBtn"><svg class="i" aria-hidden="true"><use href="#i-down"/></svg>Export JSON</button>
+        <label class="btn sec"><svg class="i" aria-hidden="true"><use href="#i-up"/></svg>Import JSON<input type="file" id="importFile" accept="application/json" class="vh"></label>
       </div>
       <p class="muted small">CSV needs “Title” and “Call Number” columns (Author, ISBN/Barcode, Status optional) — the format most catalog exports use.</p>
       <label class="f" for="catUrl">Catalog search link (for “Check catalog / hold” buttons). Use {q} for the search text.</label>
@@ -559,8 +576,8 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
       <input id="deepLink" style="width:100%" readonly>
     </div>
     <div class="panel">
-      <div class="ph"><span class="ic"><svg class="i"><use href="#i-gauge"/></svg></span><h2>Markers &amp; calibration</h2></div>
-      <button class="btn sec" id="printBtn"><svg class="i"><use href="#i-print"/></svg>Print QR markers</button>
+      <div class="ph"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-gauge"/></svg></span><h2>Markers &amp; calibration</h2></div>
+      <button class="btn sec" id="printBtn"><svg class="i" aria-hidden="true"><use href="#i-print"/></svg>Print QR markers</button>
       <p class="muted small">Tape them at each stair landing, elevator, entrance and on the end of each cataloged range.</p>
       <div class="row small" style="gap:14px"><label>Metres per map unit <input id="mpp" type="number" step="0.01" min="0.02" max="0.5" style="width:80px"></label>
         <label>Map north offset° <input id="north" type="number" step="1" style="width:70px"></label></div>
@@ -571,18 +588,18 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
 </main>
 
 <!-- Scanner modal -->
-<div class="modal hidden" id="scanModal">
+<div class="modal hidden" id="scanModal" role="dialog" aria-modal="true" aria-labelledby="scanTitle">
   <div class="panel">
-    <div class="row"><h2 class="grow" style="margin:0" id="scanTitle">Scan</h2><button class="btn sec sm" id="scanClose" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+    <div class="row"><h2 class="grow" style="margin:0" id="scanTitle">Scan</h2><button class="btn sec sm" id="scanClose" aria-label="Close"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button></div>
     <div class="scanbox" style="margin-top:10px"><video id="scanVideo" playsinline muted></video><div class="frame"></div></div>
     <p class="muted small" id="scanNote"></p>
-    <label class="f">Or choose / type it</label>
+    <label class="f" for="scanPick">Or choose / type it</label>
     <div class="row"><select id="scanPick" class="grow"></select><button class="btn" id="scanUse">Use</button></div>
   </div>
 </div>
 
 <!-- Shelve / edit modal -->
-<div class="modal hidden" id="editModal">
+<div class="modal hidden" id="editModal" role="dialog" aria-modal="true" aria-labelledby="editTitle">
   <div class="panel">
     <h2 id="editTitle">Shelve book</h2>
     <div id="editBody"></div>
@@ -593,9 +610,9 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
 </div>
 
 <!-- Shelf OCR modal -->
-<div class="modal hidden" id="ocrModal">
+<div class="modal hidden" id="ocrModal" role="dialog" aria-modal="true" aria-labelledby="ocrTitle">
   <div class="panel">
-    <div class="row"><h2 class="grow" style="margin:0">Read shelf labels</h2><button class="btn sec sm" id="ocrClose" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+    <div class="row"><h2 class="grow" style="margin:0" id="ocrTitle">Read shelf labels</h2><button class="btn sec sm" id="ocrClose" aria-label="Close"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button></div>
     <p class="muted small">Photograph one shelf straight-on. ShelfFinder reads the call-number labels left to right, updates every book’s position, and flags anything out of order.</p>
     <div class="row small">
       <label>Range <select id="oRange"></select></label>
@@ -604,10 +621,10 @@ label.f{display:block;font-size:12px;color:var(--muted);font-weight:600;margin:1
       <label>Shelf <select id="oShelf"></select></label>
     </div>
     <div class="row" style="margin-top:10px">
-      <label class="btn"><svg class="i"><use href="#i-cam"/></svg>Take / choose photo<input type="file" id="ocrFile" accept="image/*" capture="environment" class="hidden"></label>
+      <label class="btn"><svg class="i" aria-hidden="true"><use href="#i-cam"/></svg>Take / choose photo<input type="file" id="ocrFile" accept="image/*" capture="environment" class="vh"></label>
       <button class="btn sec" id="ocrFrame">Use live camera frame</button>
     </div>
-    <label class="f">No photo? Type the call numbers you see, left to right (one per line)</label>
+    <label class="f" for="ocrText">No photo? Type the call numbers you see, left to right (one per line)</label>
     <textarea id="ocrText" rows="3" style="width:100%" placeholder="B580 .A3&#10;B3279.H48 S413"></textarea>
     <div class="row" style="margin-top:6px"><button class="btn sec" id="ocrTyped">Check typed list</button></div>
     <p class="small" id="ocrStatus"></p><div class="progress hidden" id="ocrProg"><div></div></div>
@@ -1347,7 +1364,7 @@ const rangeById = (id) => D.ranges.find((r) => r.id === id);
 const bookById = (id) => S.books.find((b) => b.id === id);
 const nodeName = (id) => { const n = G[id]; return (n && n.label ? n.label : id) + (n ? ' · ' + FLOOR(n.floor).name : ''); };
 const openReports = (b) => (b.reports || []).filter((r) => r.open).length;
-function toast(m) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
+function toast(m) { const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
 function addLog(m) { S.log.unshift(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' · ' + m); S.log = S.log.slice(0, 120); }
 function ago(iso) {
   if (!iso) return 'never';
@@ -1551,15 +1568,16 @@ function renderLive() {
   if (L.error) h += `<div class="card">Couldn’t reach the catalog: ${esc(L.error)}</div>`;
   h += L.ids.map(bookById).filter(Boolean).map(bookCard).join('');
   el.innerHTML = h;
+  $('srStatus').textContent = L.loading ? 'Searching the Colgate catalog…' : L.error ? 'Couldn’t reach the Colgate catalog.' : `${L.total} result${L.total !== 1 ? 's' : ''} in the Colgate catalog.`;
 }
 
 // ---------------- FIND ----------------
 let searchTimer = null;
-const PIN = '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0119 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
+const PIN = '<svg viewBox="0 0 24 24" aria-hidden="true" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0119 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
 function stripeClass(b) { return b.status === 'shelf' ? '' : ['out', 'missing'].includes(b.status) ? 'out' : ['cart', 'transit'].includes(b.status) ? 'wait' : 'gray'; }
 function bookCard(b) {
   const d = destFor(b);
-  return `<div class="bcard" data-id="${b.id}" role="button" tabindex="0" aria-label="${esc(b.title)}">
+  return `<div class="bcard" data-id="${b.id}">
     <div class="stripe ${stripeClass(b)}"></div>
     <div class="body">
       <div class="tt">${esc(b.title)}</div>
@@ -1661,10 +1679,10 @@ function renderPlaces() {
   const T = D.placeTypes || {};
   $('placeChips').innerHTML = Object.entries(T).map(([k, t]) => {
     const n = C.placesOf(G, k).length;
-    return `<button class="tile ${placeCat === k ? 'on' : ''}" data-pcat="${k}"><div class="ic"><svg viewBox="0 0 24 24">${TILE_ICONS[k] || TILE_ICONS.study}</svg></div><b>${esc(t.name)}</b><span>${t.nearest ? 'Take me to the nearest' : `${n} place${n !== 1 ? 's' : ''}`}</span></button>`;
+    return `<button class="tile ${placeCat === k ? 'on' : ''}" data-pcat="${k}"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true">${TILE_ICONS[k] || TILE_ICONS.study}</svg></div><b>${esc(t.name)}</b><span>${t.nearest ? 'Take me to the nearest' : `${n} place${n !== 1 ? 's' : ''}`}</span></button>`;
   }).join('');
   const q = $('q').value.trim().toLowerCase();
-  const row = (n) => `<div class="item" data-place="${n.id}"><div class="ic" style="width:36px;height:36px;border-radius:9px;background:#f6e9ea;display:flex;align-items:center;justify-content:center;flex:none"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--maroon);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round">${TILE_ICONS[n.cat] || ''}</svg></div><div class="grow"><div class="t">${esc(n.label)}</div><div class="a">${FLOOR(n.floor).name} · ${esc((T[n.cat] || {}).name || '')}</div></div><span class="btn sec sm">Directions</span></div>`;
+  const row = (n) => `<div class="item" data-place="${n.id}" role="button" tabindex="0" aria-label="Directions to ${esc(n.label)}, ${FLOOR(n.floor).name}"><div class="ic" style="width:36px;height:36px;border-radius:9px;background:#f6e9ea;display:flex;align-items:center;justify-content:center;flex:none"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:20px;height:20px;stroke:var(--maroon);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round">${TILE_ICONS[n.cat] || ''}</svg></div><div class="grow"><div class="t">${esc(n.label)}</div><div class="a">${FLOOR(n.floor).name} · ${esc((T[n.cat] || {}).name || '')}</div></div><span class="btn sec sm">Directions</span></div>`;
   const byFloor = (a, b) => FLOOR(b.floor).order - FLOOR(a.floor).order;
   const catList = placeCat ? C.placesOf(G, placeCat).sort(byFloor) : [];
   $('placeList').innerHTML = catList.length ? `<div class="panel"><div class="row"><h3 class="sec-h grow" style="margin:0">${esc(T[placeCat].name)}</h3><button class="btn sec sm" data-pclose>Close</button></div><div class="list">${catList.map(row).join('')}</div></div>` : '';
@@ -1865,7 +1883,7 @@ function renderNav() {
   $('floorTabs').innerHTML = floors.map((f) => `<button class="ftab ${f === S.mapFloor ? 'on' : ''}" data-f="${f}">${FLOOR(f).name}</button>`).join('');
   $('routeSummary').textContent = S.route ? `~${walkMeters()} m walking · ${floors.length > 1 ? floors.map((f) => FLOOR(f).name.replace('Level ', 'L')).join(' → ') : 'same floor'}` : '';
   drawMap($('map'), S.mapFloor, mapOpts());
-  $('steps').innerHTML = S.steps.map((s, i) => `<li class="${s.type} ${i === S.arStep ? 'cur' : ''}" data-i="${i}"><span class="n">${s.type === 'stop' ? '★' : i + 1}</span><div><div>${esc(s.text)}${s.dist ? ` <span class="muted">· ~${s.dist} m</span>` : ''}</div>${s.sub ? `<div class="muted small">${esc(s.sub)}</div>` : ''}</div></li>`).join('') || '<li class="muted">No route.</li>';
+  $('steps').innerHTML = S.steps.map((s, i) => `<li class="${s.type} ${i === S.arStep ? 'cur' : ''}" data-i="${i}" tabindex="0" data-kbd ${i === S.arStep ? 'aria-current="step"' : ''}><span class="n">${s.type === 'stop' ? '★' : i + 1}</span><div><div>${esc(s.text)}${s.dist ? ` <span class="muted">· ~${s.dist} m</span>` : ''}</div>${s.sub ? `<div class="muted small">${esc(s.sub)}</div>` : ''}</div></li>`).join('') || '<li class="muted">No route.</li>';
 }
 function mapOpts(extra) {
   const o = { route: S.route, rects: [], lines: [], stops: [] };
@@ -1917,7 +1935,7 @@ function drawMap(svg, floor, o) {
 }
 
 // ---------------- AR GUIDE ----------------
-const ARROW = `<svg viewBox="0 0 100 100" class="arrow3d" id="arrowSvg"><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#f0a020"/></linearGradient></defs><path d="M50 6 L88 52 L64 52 L64 94 L36 94 L36 52 L12 52 Z" fill="url(#ag)" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg>`;
+const ARROW = `<svg viewBox="0 0 100 100" class="arrow3d" id="arrowSvg" aria-hidden="true"><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#f0a020"/></linearGradient></defs><path d="M50 6 L88 52 L64 52 L64 94 L36 94 L36 52 L12 52 Z" fill="url(#ag)" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg>`;
 function stepSpeech(s) {
   if (s.type === 'walk') return `${s.text}. About ${s.dist} metres.`;
   if (s.type === 'floor') return `${s.text}.`;
@@ -2300,11 +2318,11 @@ function openEdit(b, presetRange, presetFace) {
   const f0 = presetFace || (b && b.loc && b.loc.face) || 'W';
   $('editTitle').textContent = b ? `Shelve “${b.title}”` : 'Add a book';
   $('editBody').innerHTML = (b ? `<div class="muted small"><code>${esc(b.call)}</code> · belongs in ${esc((C.lookup(b.call, D).block || {}).id || '—')}</div>` : `
-      <label class="f">Title</label><input id="eTitle" style="width:100%">
-      <label class="f">Author</label><input id="eAuthor" style="width:100%">
-      <label class="f">Call number</label><input id="eCall" style="width:100%" placeholder="e.g. BF441 .K238">
-      <label class="f">ISBN / barcode (optional, for scanning)</label><input id="eIsbn" style="width:100%">`) + `
-    <label class="f">Where is it?</label>
+      <label class="f" for="eTitle">Title</label><input id="eTitle" style="width:100%">
+      <label class="f" for="eAuthor">Author</label><input id="eAuthor" style="width:100%">
+      <label class="f" for="eCall">Call number</label><input id="eCall" style="width:100%" placeholder="e.g. BF441 .K238">
+      <label class="f" for="eIsbn">ISBN / barcode (optional, for scanning)</label><input id="eIsbn" style="width:100%">`) + `
+    <label class="f" for="eRange">Where is it?</label>
     <select id="eRange" style="width:100%"><option value="">Not cataloged shelf-by-shelf (range-level only)</option>${D.ranges.map((r) => `<option value="${r.id}" ${r.id === r0 ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select>
     <div id="ePos" class="row" style="margin-top:6px"></div>`;
   const fillPos = () => {
@@ -2473,8 +2491,8 @@ function renderEditor() {
   // inspector
   const n = ED.sel && fl.nodes[ED.sel];
   $('edInspector').innerHTML = n ? `<div class="card teal"><div class="row"><b class="grow">Point “${esc(ED.sel)}” · ${f} · x ${n[0]}, y ${n[1]}</b><button class="btn sec sm" id="edDeselect">Done</button></div>
-    <div class="row" style="margin-top:6px"><input id="edLabel" class="grow" placeholder="Name shown in directions (optional)" value="${esc(n[2] || '')}">
-    <select id="edCat"><option value="">Not a place</option>${Object.entries(D.placeTypes || {}).map(([k, t]) => `<option value="${k}" ${n[3] === k ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select></div></div>` : '';
+    <div class="row" style="margin-top:6px"><input id="edLabel" class="grow" aria-label="Point name" placeholder="Name shown in directions (optional)" value="${esc(n[2] || '')}">
+    <select id="edCat" aria-label="Place type"><option value="">Not a place</option>${Object.entries(D.placeTypes || {}).map(([k, t]) => `<option value="${k}" ${n[3] === k ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select></div></div>` : '';
   if (n) {
     $('edLabel').onchange = (e) => { const v = e.target.value.trim(); n[2] = v || null; if (!n[2] && !n[3]) n.length = 2; edChanged(); };
     $('edCat').onchange = (e) => { const v = e.target.value; if (v) { n[2] = n[2] || 'New place'; n[3] = v; } else n.length = Math.min(n.length, 3); edChanged(); };
@@ -2534,12 +2552,28 @@ $('edReset').addEventListener('click', () => { const o = JSON.parse(ORIGINAL_MAP
 // ---------------- Tabs ----------------
 function setTab(t) {
   S.tab = t;
-  document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('active', b.dataset.tab === t));
+  document.querySelectorAll('#nav button').forEach((b) => { b.classList.toggle('active', b.dataset.tab === t); if (b.dataset.tab === t) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   ['find', 'cart', 'nav', 'ar', 'shelf', 'lib'].forEach((x) => $('tab-' + x).classList.toggle('hidden', x !== t));
   if (t !== 'ar' && window.speechSynthesis) speechSynthesis.cancel();
   renderAll(); window.scrollTo(0, 0);
 }
-$('nav').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setTab(b.dataset.tab); });
+function focusTabHeading(t) { const h = $('tab-' + t).querySelector('h2'); if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); } }
+$('nav').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { setTab(b.dataset.tab); focusTabHeading(b.dataset.tab); } });
+
+// ---------------- Keyboard & dialogs (accessibility) ----------------
+// Clickable rows that aren't real buttons (place rows, direction steps) work with Enter / Space.
+document.addEventListener('keydown', (e) => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[data-kbd], [role=button]:not(button):not(a)')) { e.preventDefault(); e.target.click(); }
+  if (e.key === 'Escape') { const m = [...document.querySelectorAll('.modal')].find((x) => !x.classList.contains('hidden')); if (m) { const c = m.querySelector('#scanClose, #ocrClose, #editCancel'); if (c) c.click(); } }
+});
+// Dialogs: move focus in when one opens, and back to where you were when it closes.
+if (window.MutationObserver) {
+  let lastFocus = null;
+  document.querySelectorAll('.modal').forEach((m) => new MutationObserver(() => {
+    if (!m.classList.contains('hidden')) { if (!m.contains(document.activeElement)) { lastFocus = document.activeElement; const f = m.querySelector('select, input:not(.vh), textarea, button'); if (f) f.focus(); } }
+    else if (lastFocus && document.body.contains(lastFocus)) { lastFocus.focus(); lastFocus = null; }
+  }).observe(m, { attributes: true, attributeFilter: ['class'] }));
+}
 function renderAll() { renderFind(); renderCart(); renderNav(); renderAR(); renderShelf(); renderLib(); }
 
 // Deep links: ?book=4  ?call=PR4034  ?cart=1,4,19  &from=L3:wEnt
@@ -2552,6 +2586,22 @@ else if (qs.get('book') && bookById(+qs.get('book'))) selectBook(+qs.get('book')
 else if (qs.get('call')) { const L = C.lookup(qs.get('call'), D); if (L.ok) { S.sel = { kind: 'call', call: qs.get('call').toUpperCase(), block: L.block }; computeRoute(); setTab('nav'); } else renderAll(); }
 else renderAll();
 setSync('Local');
+// ---------------- Installable app (PWA) ----------------
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname))) navigator.serviceWorker.register('sw.js').catch(() => {});
+let installEvt = null;
+const isStandalone = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent || '');
+function renderInstall() {
+  const box = $('installBox');
+  if (isStandalone() || (!installEvt && !isIOS)) { box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  $('installText').textContent = installEvt ? 'Add ShelfFinder to your home screen. It opens full screen, loads faster and works on weak Wi-Fi.' : 'On iPhone: in Safari, tap the Share button, then “Add to Home Screen”.';
+  $('installBtn').classList.toggle('hidden', !installEvt);
+}
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvt = e; renderInstall(); });
+window.addEventListener('appinstalled', () => { installEvt = null; renderInstall(); toast('ShelfFinder is on your home screen'); });
+$('installBtn').addEventListener('click', async () => { if (!installEvt) return; installEvt.prompt(); try { await installEvt.userChoice; } catch (e) {} installEvt = null; renderInstall(); });
+renderInstall();
 window.__SF = { upsertLive, refreshCopies, scheduleLive, loadReadingList, ED, renderEditor, selectPlace, S, setTab, selectBook, computeRoute, toggleCart, reportNotHere, showOcr, C };
 })();
 </script>

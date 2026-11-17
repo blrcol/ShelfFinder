@@ -14,6 +14,9 @@ src/core.js            pure logic (browser + Node): LC call numbers, lookup, Dij
 src/template.html      the whole UI (CSS + HTML + JS); placeholders /*__DATA__*/ /*__CORE__*/ /*__MAPS__*/
 src/maps.json          floor plan images (base64 JPEG) cropped from Colgate's published floor plans
 build.py               bundles src/ into index.html (one self-contained file; this is the website)
+manifest.webmanifest   PWA manifest; icons/ holds the app icon (icon.svg is the source, PNGs rendered from it)
+sw.js                  offline helper (network-first, same-origin only; bump VERSION to clear old caches)
+.github/workflows/     tests.yml: on every push, checks index.html is rebuilt and runs the three test suites
 server/alma-proxy.gs   Google Apps Script proxy that holds the Ex Libris API key (read-only)
 server/SETUP.md        how to deploy the proxy and connect it
 tests/                 core.test.js, proxy.test.js (mocked Apps Script + Ex Libris), app-live.test.js
@@ -39,6 +42,7 @@ python3 -m http.server 8000      # local preview at http://localhost:8000
 - No localStorage dependency. Data moves through JSON export/import or the optional Firebase Realtime Database (REST + EventSource).
 - In `library-data.js`, `catalogRules[].match` is a string regex. Escape backslashes (`'\\bref\\b'`).
 - **Sample books** (`books` in library-data.js) are flagged `demo` and show a "Sample book" pill. While the live catalog is connected they are hidden from student search and reading lists and never merged with live records; `?demo=1` shows them for demos.
+- **Accessibility:** icons get `aria-hidden` (`ic()` does it); clickable non-buttons need `role="button" tabindex="0"` or `data-kbd` (Enter/Space handled globally); dialogs are `.modal` with `role=dialog` + `aria-labelledby` (focus in/out and Escape are automatic); every input needs a `<label for>` or `aria-label`; keep text contrast ≥ 4.5:1.
 - **Catalog links:** `catalogRecordUrl` (Primo fulldisplay by MMS ID) for live records, `catalogSearchUrl` otherwise.
 
 ## Status
@@ -55,7 +59,7 @@ Not yet verified against real systems: camera, compass, QR scanning, voice, OCR,
 2. ~~Put the site on GitHub Pages~~ Live at https://blrcol.github.io/ShelfFinder/ (repo github.com/blrcol/ShelfFinder, Pages from `main` / root). To update: this folder (`~/Documents/ShelfFinder/ShelfFinder`) is a git clone of the repo and the Mac is signed in with the GitHub CLI (`gh`, account blrcol), so rebuild, commit and `git push`; Pages republishes in about a minute. Still to do: test it on an iPhone and an Android in the library.
 3. Use Librarian → Load locations to check Colgate's real location codes, then adjust `catalogRules`.
 4. Calibrate the map with the in-app map editor (metres per unit and north offset), and record the call numbers on the row-end signs.
-5. ~~Restyle the other tabs to match Find~~ (done). Make the app an installable PWA (manifest + service worker). Do an accessibility pass.
+5. ~~Restyle the other tabs~~, ~~installable PWA~~, ~~accessibility pass~~ (done Nov 16, 2026; the service worker could not be tested in the preview browser, so confirm install + offline on a real phone). Still manual-only: the map editor needs a mouse or touch screen.
 6. Run a timed student test, then make the demo video and slides.
 
 The feature spec is the Google Doc "ShelfFinder Feature Specification" in the owner's Drive (ShelfFinder folder).
