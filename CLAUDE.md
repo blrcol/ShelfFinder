@@ -38,6 +38,8 @@ python3 -m http.server 8000      # local preview at http://localhost:8000
 - **No patron data** anywhere, and no write access to Alma.
 - No localStorage dependency. Data moves through JSON export/import or the optional Firebase Realtime Database (REST + EventSource).
 - In `library-data.js`, `catalogRules[].match` is a string regex. Escape backslashes (`'\\bref\\b'`).
+- **Sample books** (`books` in library-data.js) are flagged `demo` and show a "Sample book" pill. While the live catalog is connected they are hidden from student search and reading lists and never merged with live records; `?demo=1` shows them for demos.
+- **Catalog links:** `catalogRecordUrl` (Primo fulldisplay by MMS ID) for live records, `catalogSearchUrl` otherwise.
 
 ## Status
 
@@ -50,7 +52,7 @@ Not yet verified against real systems: camera, compass, QR scanning, voice, OCR,
 ## Next steps
 
 1. ~~Deploy the proxy~~ Done. When `server/alma-proxy.gs` changes, paste it into the Apps Script and use Deploy → Manage deployments → edit → New version (keeps the same URL).
-2. Put the site on GitHub Pages and test it on an iPhone and an Android in the library.
+2. ~~Put the site on GitHub Pages~~ Live at https://blrcol.github.io/ShelfFinder/ (repo github.com/blrcol/ShelfFinder, Pages from `main` / root). To update: upload the rebuilt `index.html` (Add file → Upload files). Still to do: test it on an iPhone and an Android in the library.
 3. Use Librarian → Load locations to check Colgate's real location codes, then adjust `catalogRules`.
 4. Calibrate the map with the in-app map editor (metres per unit and north offset), and record the call numbers on the row-end signs.
 5. ~~Restyle the other tabs to match Find~~ (done). Make the app an installable PWA (manifest + service worker). Do an accessibility pass.

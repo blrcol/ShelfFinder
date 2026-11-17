@@ -637,14 +637,18 @@ const S = {
   cart: [], tripEnd: 'circ', trip: null, stops: [],
   start: D.entrances[0], avoidStairs: false, mapFloor: null,
   route: null, steps: [], arStep: 0,
-  settings: { mpp: 0.1, north: 0, catalogUrl: D.catalogSearchUrl || '', fbUrl: '', liveUrl: D.liveCatalogUrl || '' },
+  settings: { mpp: 0.1, north: 0, catalogUrl: D.catalogSearchUrl || '', catalogRecordUrl: D.catalogRecordUrl || '', fbUrl: '', liveUrl: D.liveCatalogUrl || '' },
   heading: null, cam: false, stream: null, voice: false, spoken: null,
   shelfBookId: null, shelfFace: null, facingRange: null,
   searches: {}, heatFloor: 'L2'
 };
 // demo: give each book a "last confirmed" time and empty report list
-S.books.forEach((b) => { b.reports = b.reports || []; if (!b.seen) b.seen = new Date(Date.now() - (b.loc ? (b.id % 3) + 1 : ((b.id * 7) % 45) + 2) * DAY).toISOString(); });
+S.books.forEach((b) => { b.demo = true; b.reports = b.reports || []; if (!b.seen) b.seen = new Date(Date.now() - (b.loc ? (b.id % 3) + 1 : ((b.id * 7) % 45) + 2) * DAY).toISOString(); });
 let G = C.buildGraph(D, S.settings.mpp);
+// Sample books (from library-data.js) have made-up shelf positions. Once the live catalog is
+// connected, students only see real Colgate records; ?demo=1 brings the samples back for a demo.
+const SHOW_DEMO = new URLSearchParams(location.search).get('demo') === '1';
+const useBook = (b) => !b.demo || SHOW_DEMO || !S.settings.liveUrl;
 $('libName').textContent = D.library;
 
 const FLOOR = (f) => D.floors[f];
@@ -715,6 +719,7 @@ function whereIs(b) {
 function statusPill(b) {
   return ({ shelf: '<span class="pill">On shelf</span>', out: '<span class="pill out">Checked out</span>', cart: '<span class="pill cart">Return cart</span>', lasr: '<span class="pill lasr">LASR storage</span>', missing: '<span class="pill miss">Missing</span>', transit: '<span class="pill cart">In transit / on hold</span>', away: '<span class="pill gray">Not on shelf</span>', elsewhere: '<span class="pill gray">Other library</span>', online: '<span class="pill lasr">Online</span>' }[b.status] || '') +
     (b.live ? ' <span class="pill" style="background:#efe8de;color:#5c4a38">Colgate catalog</span>' : '') +
+    (b.demo ? ' <span class="pill gray" title="Sample data for demos, not a real catalog record">Sample book</span>' : '') +
     (openReports(b) ? ` <span class="pill warn">Reported not there ×${openReports(b)}</span>` : '');
 }
 function blockName(b) { return b.label || (b.id + ' stacks'); }
@@ -746,7 +751,10 @@ function destFor(b) {
   return { node: w.block.floor + ':' + w.block.node, label: blockName(w.block), block: w.block, range: w.range, exact: w.exact };
 }
 function livePlace(b) { return b.almaLoc ? C.catalogPlace(b.almaLoc, D) : null; }
-function catalogLink(b) { return S.settings.catalogUrl ? S.settings.catalogUrl.replace('{q}', encodeURIComponent(b.title + ' ' + (b.author || ''))) : ''; }
+function catalogLink(b) {
+  if (b.mms && S.settings.catalogRecordUrl) return S.settings.catalogRecordUrl.replace('{mms}', encodeURIComponent(b.mms));
+  return S.settings.catalogUrl ? S.settings.catalogUrl.replace('{q}', encodeURIComponent(b.title + ' ' + (b.author || ''))) : '';
+}
 
 // ---------------- Not here ----------------
 function reportNotHere(id) {
@@ -797,7 +805,7 @@ function applyPlaceStatus(b, st) {
 }
 function upsertLive(rec) {
   const call = C.cleanCall(rec.callNumber);
-  let b = S.books.find((x) => (rec.mms && x.mms === rec.mms) || (call && C.normCall(call).length >= 4 && C.normCall(x.call) === C.normCall(call)));
+  let b = S.books.find((x) => !x.demo && ((rec.mms && x.mms === rec.mms) || (call && C.normCall(call).length >= 4 && C.normCall(x.call) === C.normCall(call))));
   if (!b) { b = { id: Math.max(0, ...S.books.map((x) => x.id)) + 1, title: rec.title, author: rec.author, call, isbn: rec.isbn || '', live: true, reports: [], seen: null }; S.books.push(b); }
   Object.assign(b, { mms: rec.mms || b.mms || null, year: rec.year || b.year, type: rec.type || b.type });
   b.almaLoc = { libraryCode: rec.libraryCode, libraryName: rec.libraryName, locationCode: rec.locationCode, locationName: rec.locationName };
@@ -870,7 +878,7 @@ function bookCard(b) {
       <div class="where">${PIN}<span>${esc(locLine(b))}</span></div>
       ${b.copies ? `<div class="au" style="margin-top:4px">${esc(copiesLine(b))}</div>` : (b.status === 'shelf' && !b.live && b.seen ? `<div class="au" style="margin-top:4px">Location confirmed ${ago(b.seen)}</div>` : '')}
       <div class="acts">
-        ${d.node ? `<button class="btn" data-go="${b.id}">Get directions</button>` : `<button class="btn sec" data-go="${b.id}">Details</button>`}
+        ${d.node ? `<button class="btn" data-go="${b.id}">Get directions</button>` : catalogLink(b) ? `<a class="btn" href="${esc(catalogLink(b))}" target="_blank" rel="noopener">${b.status === 'online' ? 'Open online' : b.status === 'out' || b.status === 'lasr' ? 'Request in catalog' : 'Open in catalog'} ↗</a><button class="btn sec" data-go="${b.id}">Details</button>` : `<button class="btn sec" data-go="${b.id}">Details</button>`}
         ${b.status !== 'online' ? `<button class="btn ${inCart(b.id) ? 'outline' : 'sec'}" data-cart="${b.id}">${inCart(b.id) ? '✓ In your cart' : '＋ Add to cart'}</button>` : ''}
       </div>
     </div></div>`;
@@ -899,7 +907,7 @@ function renderFind() {
   $('findResults').classList.toggle('hidden', !searching);
   $('qClear').classList.toggle('hidden', !searching);
   document.querySelector('.hero').classList.toggle('compact', searching);
-  const list = searching ? S.books.filter((b) => !b.live && (b.title + ' ' + b.author + ' ' + b.call).toLowerCase().includes(ql)) : [];
+  const list = searching ? S.books.filter((b) => !b.live && useBook(b) && (b.title + ' ' + b.author + ' ' + b.call).toLowerCase().includes(ql)) : [];
   let card = '';
   const p = C.parseCall(q);
   if (q && p && (/^[A-Z]{1,3}\s?\d/i.test(q) || /^REF\b/i.test(q))) {
@@ -923,6 +931,7 @@ function renderFind() {
 }
 $('q').addEventListener('input', () => { placeCat = null; renderFind(); });
 function cardClick(e) {
+  if (e.target.closest('a[href]')) return; // external catalog link: let it open
   const c = e.target.closest('[data-cart]'); if (c) { e.stopPropagation(); toggleCart(+c.dataset.cart); return; }
   const el = e.target.closest('[data-go]') || e.target.closest('.bcard'); if (el) selectBook(+(el.dataset.go || el.dataset.id));
 }
@@ -1052,7 +1061,7 @@ function loadReadingList(search) {
   const L = C.decodeList(search); if (!L) return false;
   let next = Math.max(0, ...S.books.map((x) => x.id)) + 1, unknown = 0;
   S.cart = L.calls.map((call) => {
-    let b = S.books.find((x) => C.normCall(x.call) === C.normCall(call));
+    let b = S.books.find((x) => useBook(x) && C.normCall(x.call) === C.normCall(call));
     if (!b) { b = { id: next++, title: call.toUpperCase(), author: 'From reading list (not in catalog yet)', call: call.toUpperCase(), status: 'shelf', reports: [], seen: null }; S.books.push(b); unknown++; }
     return b.id;
   });

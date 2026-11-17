@@ -15,8 +15,11 @@ window.SF_DATA = {
   // Live Colgate catalog: paste the Apps Script web-app URL here (it is not secret;
   // the API key stays inside the script). Leave empty to use demo data only.
   liveCatalogUrl: 'https://script.google.com/macros/s/AKfycbxSTzyb6mNUGsgtwYbaozWuZAjIxZssW_-qDjBeVV6n79pQB3YyHHkDMyeiLU-tyLHhsQ/exec',
-  // Optional: catalog search link for "Catalog / hold" buttons, with {q} for the search text.
-  catalogSearchUrl: '',
+  // "Open in catalog" links (Colgate Primo VE). {mms} = the record's MMS ID, {q} = search text.
+  // A book that came from the live catalog opens its own record (holds and requests are there);
+  // anything else opens a catalog search.
+  catalogRecordUrl: 'https://colgate.primo.exlibrisgroup.com/discovery/fulldisplay?docid=alma{mms}&vid=01COLGATE_INST:01COLGATE_INST&lang=en',
+  catalogSearchUrl: 'https://colgate.primo.exlibrisgroup.com/discovery/search?query=any,contains,{q}&vid=01COLGATE_INST:01COLGATE_INST&lang=en',
 
   floors: {
     L5: {
@@ -229,6 +232,8 @@ window.SF_DATA = {
 
   // DEMO catalog. Call numbers are typical LC numbers for these titles —
   // verify against the Colgate catalog and replace with your pilot inventory.
+  // SAMPLE books for demos: made-up shelf positions in the Level 2 pilot range. When the live
+  // catalog is connected they are hidden from student search (add ?demo=1 to the URL to show them).
   books: [
     { id: 1,  title: 'Meditations', author: 'Marcus Aurelius', call: 'B580 .A3', status: 'shelf', loc: { range: 'L2-R01', face: 'W', section: 1, shelf: 2, pos: 18 } },
     { id: 2,  title: 'Being and Time', author: 'Martin Heidegger', call: 'B3279.H48 S413', status: 'shelf', loc: { range: 'L2-R01', face: 'W', section: 2, shelf: 3, pos: 55 } },
