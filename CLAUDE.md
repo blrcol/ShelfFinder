@@ -59,7 +59,7 @@ Done: search, call-number lookup (Levels 1–4; SuDoc goes to Level 1; Q–T fla
 
 Live catalog: proxy deployed (Nov 16, 2026) with `PRIMO_VID` = `01COLGATE_INST:01COLGATE_INST` (default tab/scope work) and its URL is in `liveCatalogUrl`. Search, items and locations verified against Colgate's real Alma/Primo; `catalogRules` checked against all 58 real locations. Only CASE Main (the stacks) goes by call number. Atlases, Maps and Microforms (all microfilm/microfiche, including microfilm journals) are places labelled on the Level 3 floor plan (nodes `L3:atl`, `L3:maps`, `L3:mform`, Nov 17, 2026). Indexes → Reference and Newspapers → Current Periodicals are best guesses; ask a librarian to confirm those two and whether the microfiche docs are on Level 3 or with Government Documents on Level 1.
 
-Library approval: the owner got the library's OK to run ShelfFinder (Nov 17, 2026). The footer still says it is a student project, not an official Colgate service, until the library formally adopts it. A replacement Ex Libris key has been requested; the owner pastes it into Script Properties (`ALMA_KEY`) themselves.
+Library approval: the owner got the library's OK to run ShelfFinder (Nov 17, 2026). The footer still says it is a student project, not an official Colgate service, until the library formally adopts it. The owner decided to keep the current Ex Libris key rather than replace it (Nov 17, 2026); it stays only in Script Properties (`ALMA_KEY`), and a ping on Nov 17 showed configuration and bibs `ok`. If it is ever replaced, the owner pastes the new one there themselves.
 
 Not yet verified against real systems: camera, compass, QR scanning, voice, OCR, Firebase and Floor AR on real phones. Book data in library-data.js is demo data.
 
